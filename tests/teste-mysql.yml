@@ -1,0 +1,8 @@
+version: '3.8'
+services:
+  mysql-test:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ***REMOVED***
+    ports:
+      - "3308:3306"

@@ -1,0 +1,120 @@
+D:\Faculdade\TCC\
+├── 📁 .devcontainer\          # GitHub Codespaces configuration
+│   ├── 📄 devcontainer.json
+│   ├── 📄 Dockerfile
+│   └── 📄 post-create.sh
+│
+├── 📁 data\                    # Camadas de dados (medallion architecture)
+│   ├── 📁 raw\                 # Camada Bronze: Dados brutos (JSONs)
+│   │   ├── 📄 areas.json
+│   │   ├── 📄 categorias_contabeis.json
+│   │   └── 📄 fornecedores_clientes.json
+│   ├── 📁 trusted\             # Camada Silver: Dados validados e limpos
+│   ├── 📁 refined\             # Camada Gold: Dados para ML/Analytics
+│   └── 📁 exports\             # Resultados finais
+│
+├── 📁 docker\                  # Configuração de containers
+│   ├── 📁 postgres/            # PostgreSQL Data Warehouse
+│   │   ├── 📁 conf/
+│   │   └── 📁 data/            # Volume persistente
+│   └── 📄 .env (configurações de credenciais)
+│
+├── 📁 sql\                     # Scripts SQL do Data Warehouse
+│   ├── 📁 ddl/                 # Criar schemas, tabelas
+│   │   ├── 📄 00_create_schemas.sql
+│   │   ├── 📄 01_create_raw_tables.sql
+│   │   ├── 📄 02_create_trusted_tables.sql
+│   │   └── 📄 03_create_refined_tables.sql
+│   ├── 📁 dml/                 # Insert, updates
+│   ├── 📁 queries/             # Queries analíticas
+│   └── 📁 views/               # Views e materialized views
+│
+├── 📁 etl\                     # Pipeline de Extração, Transformação e Carga
+│   ├── 📁 config/              # Arquivos de configuração
+│   ├── 📁 logs/                # Logs de execução
+│   └── 📁 scripts/
+│       ├── 📁 raw_to_trusted/  # Validação e limpeza de dados
+│       ├── 📁 trusted_to_refined/  # Agregações e cálculos
+│       └── 📁 refined_to_features/  # Feature engineering
+│
+├── 📁 ml\                      # Machine Learning Pipeline
+│   ├── 📁 src/                 # Código reutilizável
+│   ├── 📁 notebooks/           # Exploração e análises
+│   ├── 📁 models/              # Modelos treinados (.pkl, .h5)
+│   ├── 📁 evaluation/          # Métricas e avaliações
+│   └── 📄 requirements.txt     # Dependências ML
+│
+├── 📁 docs/                    # Documentação do projeto
+│   ├── 📁 db_docs/
+│   │   ├── 📄 DataWarehouse_Documentacao.pdf
+│   │   └── 📄 DataWarehouse_Documentacao.docx
+│   ├── 📄 arquitetura.md       # Arquitetura do sistema
+│   └── 📄 estrutura-pasta.txt  # Este arquivo
+│
+├── 📁 tests/                   # Testes do projeto
+│   ├── 📁 unit/                # Testes unitários
+│   ├── 📁 integration/         # Testes de integração
+│   └── 📁 fixtures/            # Dados de teste
+│
+├── 📄 .devcontainer/           # GitHub Codespaces
+├── 📄 .dockerignore            # Arquivos ignorados no Docker
+├── 📄 .env                     # Variáveis de ambiente (NÃO commitar)
+├── 📄 .env.example             # Template de .env
+├── 📄 .gitignore               # Arquivos ignorados no Git
+├── 📄 docker-compose.yml       # Orquestração de containers
+├── 📄 requirements.txt         # Dependências gerais
+├── 📄 README.md                # Documentação principal
+└── 📄 LICENSE                  # Licença do projeto
+
+
+project/
+├── .devcontainer/          # Codespaces config
+├── .env.example            # Template de variáveis
+├── .dockerignore
+├── .gitignore
+├── docker-compose.yml
+├── requirements.txt        # Deps gerais (opcional)
+├── README.md
+│
+├── data/
+│   ├── raw/                # Dados brutos (JSON, CSVs)
+│   ├── trusted/            # Dados limpos pós-validação
+│   ├── refined/            # Dados para ML/analytics
+│   ├── exports/            # Resultados finais
+│
+├── docker/
+│   ├── postgres/           # Config PostgreSQL
+│   │   └── data/
+│   └── conf/               # Arquivos de configuração
+│
+├── sql/
+│   ├── ddl/                # Create tables, schemas
+│   ├── dml/                # Insert, updates
+│   ├── queries/            # Queries analíticas
+│   └── views/              # Materialized views
+│
+├── etl/
+│   ├── config/             # Configurações (YAML, JSON)
+│   ├── scripts/
+│   │   ├── raw_to_trusted/
+│   │   ├── trusted_to_refined/
+│   │   └── refined_to_features/
+│   └── logs/               # Logs de execução
+│
+├── ml/
+│   ├── src/                # Código reutilizável
+│   ├── notebooks/          # Exploração de dados
+│   ├── models/             # Modelos treinados (.pkl, .h5)
+│   ├── evaluation/         # Métricas e avaliações
+│   ├── requirements.txt    # Deps ML (pandas, sklearn, etc)
+│   └── config.yaml         # Hyperparameters
+│
+├── docs/
+│   ├── architecture.md     # Arquitetura do sistema
+│   ├── db_docs/            # Documentação do banco
+│   └── guides/             # Guias de uso
+│
+└── tests/
+    ├── unit/               # Testes unitários
+    ├── integration/        # Testes de integração
+    └── fixtures/           # Dados de teste
