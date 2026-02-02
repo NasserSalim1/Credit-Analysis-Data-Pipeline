@@ -1,9 +1,4 @@
 D:\Faculdade\TCC\
-├── 📁 .devcontainer\          # GitHub Codespaces configuration
-│   ├── 📄 devcontainer.json
-│   ├── 📄 Dockerfile
-│   └── 📄 post-create.sh
-│
 ├── 📁 data\                    # Camadas de dados (medallion architecture)
 │   ├── 📁 raw\                 # Camada Bronze: Dados brutos (JSONs)
 │   │   ├── 📄 areas.json
