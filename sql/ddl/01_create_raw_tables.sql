@@ -2,7 +2,7 @@
 
 -- Tabela: raw.transacoes_financeiras
 CREATE TABLE IF NOT EXISTS raw.transacoes_financeiras (
-    id_transacao_raw INT,
+    id_transacao_raw TEXT,
     data_transacao TEXT,
     data_competencia TEXT,
     id_area_raw TEXT,
