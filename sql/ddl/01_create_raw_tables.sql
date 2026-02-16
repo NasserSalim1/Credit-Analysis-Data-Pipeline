@@ -2,17 +2,17 @@
 
 -- Tabela: raw.transacoes_financeiras
 CREATE TABLE IF NOT EXISTS raw.transacoes_financeiras (
-    id_transacao_raw INT,
+    id_transacao_raw TEXT,
     data_transacao TEXT,
     data_competencia TEXT,
-    id_area_raw INT,
-    id_fornecedor_raw INT,
+    id_area_raw TEXT,
+    id_fornecedor_raw TEXT,
     tipo_transacao TEXT,
     valor_bruto TEXT,
     valor_liquido TEXT,
     moeda TEXT,
     descricao TEXT,
-    id_categoria_raw INT,
+    id_categoria_raw TEXT,
     forma_pagamento TEXT,
     status_pagamento TEXT,
     ingestion_id CHAR(36) NOT NULL,
