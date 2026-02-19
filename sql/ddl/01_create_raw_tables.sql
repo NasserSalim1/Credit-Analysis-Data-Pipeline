@@ -47,7 +47,7 @@ COMMENT ON TABLE raw.areas IS 'Áreas/departamentos brutos - Camada RAW';
 
 -- Tabela: raw.fornecedores_clientes
 CREATE TABLE IF NOT EXISTS raw.fornecedores_clientes (
-    id_fornecedor_raw INT,
+    id_fornecedor_raw TEXT,
     nome_fornecedor TEXT,
     tipo_fornecedor TEXT,
     cnpj_cpf TEXT,
