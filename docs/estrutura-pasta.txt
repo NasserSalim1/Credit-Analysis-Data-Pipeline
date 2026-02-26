@@ -1,21 +1,15 @@
 D:\Faculdade\TCC\
 ├── 📁 .git (omitido: estrutura interna)
 ├── 📁 docker\postgres\data (omitido: volume)
-├── 📁 docker\postgress\data (omitido: volume)
 ├── 📁 .vscode
 ├── 📁 data
 │   ├── 📁 exports
 │   ├── 📁 models
 │   ├── 📁 raw
-│   │   ├── 📄 areas.json
-│   │   ├── 📄 categorias_contabeis.json
-│   │   └── 📄 fornecedores_clientes.json
 │   ├── 📁 refined
 │   └── 📁 trusted
 ├── 📁 docker
-│   ├── 📁 postgres
-│   └── 📁 postgress
-│       └── 📁 conf
+│   └── 📁 postgres
 ├── 📁 docs
 │   ├── 📁 db_docs
 │   │   ├── 📄 DataWarehouse_Documentacao.docx
@@ -44,11 +38,9 @@ D:\Faculdade\TCC\
 │   │   ├── 📄 02_create_trusted_tables.sql
 │   │   ├── 📄 03_create_refined_tables.sql
 │   │   ├── 📄 conexao_banco.ipynb
-│   │   ├── 📄 insert_dados.ipynb
-│   │   └── 📄 raw_transacoes_financeiras.csv
+│   │   └── 📄 insert_dados.ipynb
 │   ├── 📁 dml
-│   │   ├── 📄 dados_fake.ipynb
-│   │   └── 📄 raw_transacoes_financeiras.csv
+│   │   └── 📄 dados_fake_transacoes_financeiras.ipynb
 │   └── 📁 views
 ├── 📁 tests
 │   ├── 📄 teste.ipynb

@@ -193,3 +193,7 @@ docker-compose.override.yml
 # Volumes / dados de containers
 postgres/data/
 docker/postgres/data/
+
+data/raw/
+data/refined/
+data/trusted/
