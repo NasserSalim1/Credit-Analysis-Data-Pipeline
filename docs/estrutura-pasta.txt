@@ -1,35 +1,72 @@
 D:\Faculdade\TCC\
 ├── 📁 .git (omitido: estrutura interna)
-├── 📁 docker\postgres\data (omitido: volume)
+├── 📁 .venv (omitido: ambiente virtual)
 ├── 📁 .vscode
 ├── 📁 data
-│   ├── 📁 exports
-│   ├── 📁 models
+│   ├── 📁 exports (vazio)
+│   ├── 📁 models (vazio)
 │   ├── 📁 raw
-│   ├── 📁 refined
-│   └── 📁 trusted
+│   │   ├── 📁 areas
+│   │   │   └── 📄 areas.csv
+│   │   ├── 📁 categorias_contabeis
+│   │   │   └── 📄 categorias_contabeis.csv
+│   │   ├── 📁 fornecedores_clientes
+│   │   │   └── 📄 fornecedores_clientes.csv
+│   │   ├── 📁 funcionarios
+│   │   │   └── 📄 funcionarios.csv
+│   │   ├── 📁 pagamentos
+│   │   │   └── 📄 pagamentos.csv
+│   │   ├── 📁 recebimentos
+│   │   │   └── 📄 recebimentos.csv
+│   │   └── 📁 transacoes_financeiras
+│   │       ├── 📄 transacoes_2024_01_01.csv
+│   │       ├── 📄 transacoes_2024_02_01.csv
+│   │       ├── 📄 transacoes_2024_03_01.csv
+│   │       ├── 📄 transacoes_2024_04_01.csv
+│   │       ├── 📄 transacoes_2024_05_01.csv
+│   │       ├── 📄 transacoes_2024_06_01.csv
+│   │       ├── 📄 transacoes_2024_07_01.csv
+│   │       ├── 📄 transacoes_2024_08_01.csv
+│   │       ├── 📄 transacoes_2024_09_01.csv
+│   │       ├── 📄 transacoes_2024_10_01.csv
+│   │       ├── 📄 transacoes_2024_11_01.csv
+│   │       ├── 📄 transacoes_2024_12_01.csv
+│   │       ├── 📄 transacoes_2025_01_01.csv
+│   │       ├── 📄 transacoes_2025_02_01.csv
+│   │       ├── 📄 transacoes_2025_03_01.csv
+│   │       ├── 📄 transacoes_2025_04_01.csv
+│   │       ├── 📄 transacoes_2025_05_01.csv
+│   │       ├── 📄 transacoes_2025_06_01.csv
+│   │       ├── 📄 transacoes_2025_07_01.csv
+│   │       ├── 📄 transacoes_2025_08_01.csv
+│   │       ├── 📄 transacoes_2025_09_01.csv
+│   │       ├── 📄 transacoes_2025_10_01.csv
+│   │       ├── 📄 transacoes_2025_11_01.csv
+│   │       └── 📄 transacoes_2025_12_01.csv
+│   ├── 📁 refined (vazio)
+│   └── 📁 trusted (vazio)
 ├── 📁 docker
 │   └── 📁 postgres
+│       └── 📁 data (omitido: volume)
 ├── 📁 docs
 │   ├── 📁 db_docs
 │   │   ├── 📄 DataWarehouse_Documentacao.docx
 │   │   └── 📄 DataWarehouse_Documentacao.pdf
 │   ├── 📄 estrutura-pasta.txt
 │   ├── 📄 instruções
-│   ├── 📄 instruções_git
-│   └── 📄 REORGANIZACAO.md
+│   └── 📄 instruções_git
 ├── 📁 etl
-│   ├── 📁 config
-│   ├── 📁 logs
+│   ├── 📁 config (vazio)
+│   ├── 📁 logs (vazio)
 │   └── 📁 scripts
-│       ├── 📁 raw_to_trusted
-│       ├── 📁 refined_to_features
-│       └── 📁 trusted_to_refined
+│       ├── 📁 raw_to_trusted (vazio)
+│       ├── 📁 refined_to_features (vazio)
+│       └── 📁 trusted_to_refined (vazio)
 ├── 📁 ml
-│   ├── 📁 evaluation
-│   ├── 📁 models
-│   ├── 📁 notebooks
-│   ├── 📁 src
+│   ├── 📁 evaluation (vazio)
+│   ├── 📁 models (vazio)
+│   ├── 📁 notebooks (vazio)
+│   ├── 📁 src (vazio)
 │   └── 📄 requirements.txt
 ├── 📁 sql
 │   ├── 📁 ddl
@@ -37,11 +74,17 @@ D:\Faculdade\TCC\
 │   │   ├── 📄 01_create_raw_tables.sql
 │   │   ├── 📄 02_create_trusted_tables.sql
 │   │   ├── 📄 03_create_refined_tables.sql
-│   │   ├── 📄 conexao_banco.ipynb
-│   │   └── 📄 insert_dados.ipynb
+│   │   └── 📄 conexao_banco.ipynb
 │   ├── 📁 dml
-│   │   └── 📄 dados_fake_transacoes_financeiras.ipynb
-│   └── 📁 views
+│   │   ├── 📄 banco.ipynb
+│   │   ├── 📄 dados_raw_areas.ipynb
+│   │   ├── 📄 dados_raw_categorias_contabeis.ipynb
+│   │   ├── 📄 dados_raw_fornecedores_clientes.ipynb
+│   │   ├── 📄 dados_raw_funcionarios.ipynb
+│   │   ├── 📄 dados_raw_pagamentos.ipynb
+│   │   ├── 📄 dados_raw_recebimentos.ipynb
+│   │   └── 📄 dados_transacoes_financeiras.ipynb
+│   └── 📁 views (vazio)
 ├── 📁 tests
 │   ├── 📄 teste.ipynb
 │   └── 📄 teste-mysql.yml
