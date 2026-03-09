@@ -1,4 +1,66 @@
+# =============================================================================
+# TCC — Data Warehouse Financeiro
+# =============================================================================
+#
+# ORDEM DE EXECUÇÃO DOS NOTEBOOKS (rodar manualmente no Jupyter):
+#
+# ── ETAPA 1: Geração dos dados sintéticos (sql/dml/) ─────────────────────────
+#
+#   1. dados_transacoes_financeiras.ipynb   ← tabela fato + gera CSVs mensais
+#   2. dados_raw_areas.ipynb
+#   3. dados_raw_categorias_contabeis.ipynb
+#   4. dados_raw_fornecedores_clientes.ipynb  (depende dos CSVs do passo 1)
+#   5. dados_raw_funcionarios.ipynb
+#   6. dados_raw_pagamentos.ipynb             (depende dos CSVs do passo 1)
+#   7. dados_raw_recebimentos.ipynb           (depende dos CSVs do passo 1)
+#
+# ── ETAPA 2: Carga no banco (sql/dml/) ───────────────────────────────────────
+#
+#   8. banco.ipynb
+#      Ordem interna de INSERT:
+#        8.1  TRUNCATE todas as tabelas raw.*
+#        8.2  raw.areas
+#        8.3  raw.categorias_contabeis
+#        8.4  raw.fornecedores_clientes
+#        8.5  raw.funcionarios
+#        8.6  raw.transacoes_financeiras   ← fato (depende das dimensões acima)
+#        8.7  raw.pagamentos               ← satélite
+#        8.8  raw.recebimentos             ← satélite
+#
+# PRÉ-REQUISITO: Docker em execução com `docker compose up -d`
+# O banco já cria os schemas e tabelas via scripts em sql/ddl/ (initdb)
+# =============================================================================
+
 services:
+
+  # ---------------------------------------------------------------------------
+  # data-init: executa os notebooks em ordem e carrega os dados no banco.
+  # Roda uma única vez após o postgres estar saudável.
+  # Acompanhe o progresso com: docker compose logs -f data-init
+  # ---------------------------------------------------------------------------
+  data-init:
+    image: python:3.11-slim
+    container_name: tcc-data-init
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      DB_HOST: postgres-dw
+      DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: financial_dw
+    depends_on:
+      postgres-dw:
+        condition: service_healthy
+    networks:
+      - tcc-network
+    restart: "no"
+    command: python3 /app/scripts/run_notebooks.py
+
+  # ---------------------------------------------------------------------------
+  # app: container interativo para exploração / desenvolvimento
+  # ---------------------------------------------------------------------------
   app:
     image: python:3.11-slim
     container_name: tcc-app
@@ -20,6 +82,10 @@ services:
     tty: true
     command: bash
 
+  # ---------------------------------------------------------------------------
+  # postgres-dw: banco de dados PostgreSQL 15
+  # Scripts em sql/ddl/ são executados na primeira inicialização (initdb)
+  # ---------------------------------------------------------------------------
   postgres-dw:
     image: postgres:15
     container_name: tcc-postgres-dw
@@ -33,14 +99,15 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./sql/ddl:/docker-entrypoint-initdb.d:ro
-      - ./data:/data:ro
+      - ./data:/data
     networks:
       - tcc-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 networks:
   tcc-network:

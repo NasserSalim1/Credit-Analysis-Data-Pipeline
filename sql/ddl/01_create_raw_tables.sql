@@ -2,17 +2,17 @@
 
 -- Tabela: raw.transacoes_financeiras
 CREATE TABLE IF NOT EXISTS raw.transacoes_financeiras (
-    id_transacao_raw INT,
-    data_transacao TEXT,
+    id_transacao_raw TEXT, -- ok
+    data_transacao TEXT, -- ok
     data_competencia TEXT,
-    id_area_raw INT,
-    id_fornecedor_raw INT,
+    id_area_raw TEXT,
+    id_fornecedor_raw TEXT,
     tipo_transacao TEXT,
-    valor_bruto TEXT,
-    valor_liquido TEXT,
+    valor_bruto TEXT, -- ok
+    valor_liquido TEXT, -- ok
     moeda TEXT,
     descricao TEXT,
-    id_categoria_raw INT,
+    id_categoria_raw TEXT,
     forma_pagamento TEXT,
     status_pagamento TEXT,
     ingestion_id CHAR(36) NOT NULL,
@@ -47,7 +47,7 @@ COMMENT ON TABLE raw.areas IS 'Áreas/departamentos brutos - Camada RAW';
 
 -- Tabela: raw.fornecedores_clientes
 CREATE TABLE IF NOT EXISTS raw.fornecedores_clientes (
-    id_fornecedor_raw INT,
+    id_fornecedor_raw TEXT,
     nome_fornecedor TEXT,
     tipo_fornecedor TEXT,
     cnpj_cpf TEXT,
