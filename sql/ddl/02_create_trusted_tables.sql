@@ -1,5 +1,4 @@
--- 02_create_trusted_tables.sql
--- Criação das tabelas da camada TRUSTED (Silver)
+-- Criação das tabelas da camada TRUSTED
 
 -- 1. trusted.areas (SCD Tipo 2)
 CREATE TABLE IF NOT EXISTS trusted.areas (

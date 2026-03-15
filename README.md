@@ -1,7 +1,7 @@
 # Credit Analysis Data Pipeline & Predictive Model
 
 **Projeto de TCC / Iniciação Científica** | Engenharia da Computação  
-*Data de Início: 06/2025* | *Status: Em Desenvolvimento*
+*Data de Início: 06/2025* | *Status: Em Desenvolvimento* | *Branch Atual: HML*
 
 ## 🎯 Objetivo
 Desenvolver uma solução de dados completa para análise de risco de crédito, integrando um Data Warehouse em PostgreSQL com um modelo preditivo baseado em Redes Neurais.
@@ -77,10 +77,41 @@ project/
 - [x] Definição da arquitetura e modelagem dimensional do DW
 - [x] Configuração do ambiente (Docker, Codespaces)
 - [x] Reorganização da estrutura do projeto
-- [ ] Implementação dos scripts ETL
+- [x] Criação do schema do banco de dados (DDL)
+- [x] Geração de dados sintéticos (24 meses de transações)
+- [ ] Implementação dos scripts ETL (raw → trusted → refined)
+- [ ] Desenvolvimento do pipeline de feature engineering
 - [ ] Desenvolvimento do modelo de Rede Neural
 - [ ] Criação do dashboard com Streamlit
-- [ ] Testes e CI/CD
+- [ ] Implementação de testes e CI/CD
+
+## 🔍 Estado Detalhado do Projeto
+
+### Banco de Dados
+- **Schemas Criados:** raw, trusted, refined
+- **Tabelas RAW:** transacoes_financeiras, areas, fornecedores_clientes, funcionarios, pagamentos, recebimentos, categorias_contabeis
+- **Tabelas TRUSTED:** Implementadas com SCD Tipo 2
+- **Tabelas REFINED:** Dimensões tempo e moeda criadas; fato tables pendentes
+
+### Dados
+- **Geração Completa:** 24 arquivos CSV mensais (2024-2025) com padrões realistas
+- **Volume:** Centenas de fornecedores, 6 áreas, 8 categorias contábeis
+- **Automação:** Scripts em Jupyter para geração e carga inicial
+
+### ETL
+- **Scripts Pendentes:** Transformações raw_to_trusted, trusted_to_refined, refined_to_features
+- **Orquestração:** Script Python para execução sequencial de notebooks
+
+### Machine Learning
+- **Estrutura Criada:** Pastas para notebooks, modelos, src, evaluation
+- **Frameworks:** TensorFlow/Keras, Scikit-learn configurados
+- **Próximos Passos:** Feature engineering, arquitetura da rede neural, treinamento
+
+### Testes
+- **Implementação Básica:** Estrutura inicial criada
+- **Pendências:** Testes unitários, validação de dados, testes de ML
+
+**Progresso Geral: ~30% Completo**
 
 ## 🔧 Configuração Rápida
 
@@ -97,7 +128,16 @@ docker-compose up -d
 # Acessar banco de dados
 psql -U postgres -h localhost -d financial_dw
 
-# Jupyter
+# Executar geração de dados (se necessário)
+python scripts/run_notebooks.py
+```
+
+## 📋 Próximas Etapas Prioritárias
+1. Implementar scripts ETL para transformação de dados
+2. Desenvolver pipeline de feature engineering
+3. Criar modelo de rede neural para análise de risco
+4. Construir dashboard Streamlit
+5. Implementar suite de testes e CI/CD
 jupyter lab
 ```
 

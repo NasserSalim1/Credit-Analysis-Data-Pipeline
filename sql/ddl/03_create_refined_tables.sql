@@ -1,6 +1,4 @@
--- 03_create_refined_tables.sql
 -- Criação das tabelas da camada REFINED (Gold)
--- Modelo dimensional (Star Schema) otimizado para análise
 
 -- ============================================
 -- DIMENSÕES
@@ -141,8 +139,6 @@ CREATE TABLE IF NOT EXISTS refined.dim_funcionario (
     source_system TEXT NOT NULL
 );
 
--- 7. refined.dim_moeda 
-
 -- ============================================
 -- FATOS (TABELAS FATO)
 -- ============================================
@@ -265,5 +261,3 @@ CREATE INDEX idx_fact_saldos_tempo ON refined.fact_saldos_diarios(tempo_sk);
 -- ============================================
 
 COMMENT ON SCHEMA refined IS 'Camada REFINED (Gold): Modelo dimensional otimizado para análises, BI e machine learning';
-
---Teste

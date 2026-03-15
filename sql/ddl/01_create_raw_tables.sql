@@ -1,4 +1,4 @@
--- Criação das tabelas da camada RAW (Bronze)
+-- Criação das tabelas da camada RAW
 
 -- Tabela: raw.transacoes_financeiras
 CREATE TABLE IF NOT EXISTS raw.transacoes_financeiras (
