@@ -265,5 +265,3 @@ CREATE INDEX idx_fact_saldos_tempo ON refined.fact_saldos_diarios(tempo_sk);
 -- ============================================
 
 COMMENT ON SCHEMA refined IS 'Camada REFINED (Gold): Modelo dimensional otimizado para análises, BI e machine learning';
-
---Teste
