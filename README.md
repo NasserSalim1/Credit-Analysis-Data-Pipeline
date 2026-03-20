@@ -77,6 +77,8 @@ project/
 - [x] Definição da arquitetura e modelagem dimensional do DW
 - [x] Configuração do ambiente (Docker, Codespaces)
 - [x] Reorganização da estrutura do projeto
+- [x] Criação do schema do banco de dados (DDL)
+- [x] Geração de dados sintéticos (24 meses de transações)
 - [ ] Implementação dos scripts ETL
 - [ ] Desenvolvimento do modelo de Rede Neural
 - [ ] Criação do dashboard com Streamlit
