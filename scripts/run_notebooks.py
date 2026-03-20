@@ -7,19 +7,22 @@ import subprocess
 import sys
 import os
 
-NB_DIR = "/app/sql/dml"
+# Diretórios dos notebooks dentro do container
+GENERATORS_DIR = "/app/data/generators"
+LOAD_RAW_DIR   = "/app/etl/scripts/load_raw"
 
+# Tuplas (diretório, notebook) na ordem de execução
 NOTEBOOKS = [
     # Etapa 1 — Geração dos dados sintéticos (ordem de dependência)
-    "dados_transacoes_financeiras.ipynb",   # fato — gera os CSVs mensais primeiro
-    "dados_raw_areas.ipynb",
-    "dados_raw_categorias_contabeis.ipynb",
-    "dados_raw_fornecedores_clientes.ipynb", # depende dos CSVs de transacoes
-    "dados_raw_funcionarios.ipynb",
-    "dados_raw_pagamentos.ipynb",            # depende dos CSVs de transacoes
-    "dados_raw_recebimentos.ipynb",          # depende dos CSVs de transacoes
+    (GENERATORS_DIR, "dados_transacoes_financeiras.ipynb"),   # fato — gera os CSVs mensais primeiro
+    (GENERATORS_DIR, "dados_raw_areas.ipynb"),
+    (GENERATORS_DIR, "dados_raw_categorias_contabeis.ipynb"),
+    (GENERATORS_DIR, "dados_raw_fornecedores_clientes.ipynb"),  # depende dos CSVs de transacoes
+    (GENERATORS_DIR, "dados_raw_funcionarios.ipynb"),
+    (GENERATORS_DIR, "dados_raw_pagamentos.ipynb"),             # depende dos CSVs de transacoes
+    (GENERATORS_DIR, "dados_raw_recebimentos.ipynb"),           # depende dos CSVs de transacoes
     # Etapa 2 — Carga no banco (depende de todos os CSVs gerados acima)
-    "banco.ipynb",
+    (LOAD_RAW_DIR,   "banco.ipynb"),
 ]
 
 
@@ -54,9 +57,8 @@ def main():
 
     # ── 2. Executa os notebooks em ordem ─────────────────────────────────────
     total = len(NOTEBOOKS)
-    etapa_banco = total  # último notebook
 
-    for i, nb in enumerate(NOTEBOOKS, start=1):
+    for i, (nb_dir, nb) in enumerate(NOTEBOOKS, start=1):
         if nb == "banco.ipynb":
             print("\n[3/3] Carregando dados no banco...")
         elif i == 1:
@@ -70,7 +72,7 @@ def main():
             f"--output=/tmp/out_{i}.ipynb",
             "--ExecutePreprocessor.timeout=600",
             "--ExecutePreprocessor.kernel_name=python3",
-            os.path.join(NB_DIR, nb),
+            os.path.join(nb_dir, nb),
         ])
 
     print("\n=============================================")
