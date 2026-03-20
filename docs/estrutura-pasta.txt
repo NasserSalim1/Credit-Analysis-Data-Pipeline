@@ -1,10 +1,22 @@
 D:\Faculdade\TCC\
 ├── 📁 .git (omitido: estrutura interna)
 ├── 📁 .venv (omitido: ambiente virtual)
-├── 📁 .vscode
 ├── 📁 data
 │   ├── 📁 exports (vazio)
-│   ├── 📁 models (vazio)
+│   ├── 📁 generators               ← notebooks e scripts de geração de dados sintéticos
+│   │   ├── 📄 dados_raw_areas.ipynb
+│   │   ├── 📄 dados_raw_areas.py
+│   │   ├── 📄 dados_raw_categorias_contabeis.ipynb
+│   │   ├── 📄 dados_raw_categorias_contabeis.py
+│   │   ├── 📄 dados_raw_fornecedores_clientes.ipynb
+│   │   ├── 📄 dados_raw_fornecedores_clientes.py
+│   │   ├── 📄 dados_raw_funcionarios.ipynb
+│   │   ├── 📄 dados_raw_funcionarios.py
+│   │   ├── 📄 dados_raw_pagamentos.ipynb
+│   │   ├── 📄 dados_raw_pagamentos.py
+│   │   ├── 📄 dados_raw_recebimentos.ipynb
+│   │   ├── 📄 dados_raw_recebimentos.py
+│   │   └── 📄 dados_transacoes_financeiras.ipynb
 │   ├── 📁 raw
 │   │   ├── 📁 areas
 │   │   │   └── 📄 areas.csv
@@ -20,31 +32,9 @@ D:\Faculdade\TCC\
 │   │   │   └── 📄 recebimentos.csv
 │   │   └── 📁 transacoes_financeiras
 │   │       ├── 📄 transacoes_2024_01_01.csv
-│   │       ├── 📄 transacoes_2024_02_01.csv
-│   │       ├── 📄 transacoes_2024_03_01.csv
-│   │       ├── 📄 transacoes_2024_04_01.csv
-│   │       ├── 📄 transacoes_2024_05_01.csv
-│   │       ├── 📄 transacoes_2024_06_01.csv
-│   │       ├── 📄 transacoes_2024_07_01.csv
-│   │       ├── 📄 transacoes_2024_08_01.csv
-│   │       ├── 📄 transacoes_2024_09_01.csv
-│   │       ├── 📄 transacoes_2024_10_01.csv
-│   │       ├── 📄 transacoes_2024_11_01.csv
-│   │       ├── 📄 transacoes_2024_12_01.csv
-│   │       ├── 📄 transacoes_2025_01_01.csv
-│   │       ├── 📄 transacoes_2025_02_01.csv
-│   │       ├── 📄 transacoes_2025_03_01.csv
-│   │       ├── 📄 transacoes_2025_04_01.csv
-│   │       ├── 📄 transacoes_2025_05_01.csv
-│   │       ├── 📄 transacoes_2025_06_01.csv
-│   │       ├── 📄 transacoes_2025_07_01.csv
-│   │       ├── 📄 transacoes_2025_08_01.csv
-│   │       ├── 📄 transacoes_2025_09_01.csv
-│   │       ├── 📄 transacoes_2025_10_01.csv
-│   │       ├── 📄 transacoes_2025_11_01.csv
-│   │       └── 📄 transacoes_2025_12_01.csv
-│   ├── 📁 refined (vazio)
-│   └── 📁 trusted (vazio)
+│   │       └── 📄 ... (24 arquivos mensais: 2024-01 a 2025-12)
+│   ├── 📁 refined (vazio — populado pelo ETL trusted→refined)
+│   └── 📁 trusted (vazio — populado pelo ETL raw→trusted)
 ├── 📁 docker
 │   └── 📁 postgres
 │       └── 📁 data (omitido: volume)
@@ -52,49 +42,49 @@ D:\Faculdade\TCC\
 │   ├── 📁 db_docs
 │   │   ├── 📄 DataWarehouse_Documentacao.docx
 │   │   └── 📄 DataWarehouse_Documentacao.pdf
-│   ├── 📄 estrutura-pasta.txt
-│   ├── 📄 instruções
-│   └── 📄 instruções_git
+│   ├── 📄 estrutura-pasta.txt      ← este arquivo
+│   ├── 📄 instrucoes_git.md
+│   └── 📄 instruções_docker
 ├── 📁 etl
-│   ├── 📁 config (vazio)
-│   ├── 📁 logs (vazio)
+│   ├── 📁 config
+│   │   └── 📄 etl_config.py
+│   ├── 📁 logs (gerado em execução)
 │   └── 📁 scripts
-│       ├── 📁 raw_to_trusted (vazio)
-│       ├── 📁 refined_to_features (vazio)
-│       └── 📁 trusted_to_refined (vazio)
+│       ├── 📁 load_raw             ← carrega CSVs no PostgreSQL via COPY
+│       │   ├── 📄 banco.ipynb
+│       │   └── 📄 banco.py
+│       ├── 📁 raw_to_trusted       ← transforma raw → trusted (SCD Tipo 2)
+│       │   ├── 📄 00_moedas.py     ← dados de referência (BRL, USD, EUR)
+│       │   ├── 📄 01_areas.py
+│       │   └── 📄 02_categorias_contabeis.py
+│       ├── 📁 trusted_to_refined   ← transforma trusted → refined (Star Schema)
+│       │   └── 📄 00_dim_tempo.py  ← spine de datas 2023-2026
+│       └── 📁 refined_to_features (vazio — para feature engineering de ML)
 ├── 📁 ml
 │   ├── 📁 evaluation (vazio)
 │   ├── 📁 models (vazio)
 │   ├── 📁 notebooks (vazio)
 │   ├── 📁 src (vazio)
 │   └── 📄 requirements.txt
+├── 📁 scripts
+│   └── 📄 run_notebooks.py         ← orquestra geração de dados + carga (usado pelo Docker)
 ├── 📁 sql
 │   ├── 📁 ddl
 │   │   ├── 📄 00_create_schemas.sql
 │   │   ├── 📄 01_create_raw_tables.sql
 │   │   ├── 📄 02_create_trusted_tables.sql
-│   │   ├── 📄 03_create_refined_tables.sql
-│   │   └── 📄 conexao_banco.ipynb
+│   │   └── 📄 03_create_refined_tables.sql
 │   ├── 📁 dml
-│   │   ├── 📄 banco.ipynb
-│   │   ├── 📄 dados_raw_areas.ipynb
-│   │   ├── 📄 dados_raw_categorias_contabeis.ipynb
-│   │   ├── 📄 dados_raw_fornecedores_clientes.ipynb
-│   │   ├── 📄 dados_raw_funcionarios.ipynb
-│   │   ├── 📄 dados_raw_pagamentos.ipynb
-│   │   ├── 📄 dados_raw_recebimentos.ipynb
-│   │   └── 📄 dados_transacoes_financeiras.ipynb
+│   │   └── 📄 00_insert.sql
+│   ├── 📁 queries (vazio)
 │   └── 📁 views (vazio)
 ├── 📁 tests
 │   ├── 📄 teste.ipynb
 │   └── 📄 teste-mysql.yml
 ├── 📄 .dockerignore
-├── 📄 .env
 ├── 📄 .env.example
 ├── 📄 .gitignore
-├── 📄 areas_202511031017.json
-├── 📄 categorias_contabeis_202511031026.json
+├── 📄 CONTRIBUTING.md
 ├── 📄 docker-compose.yml
-├── 📄 fornecedores_clientes_202511031031.json
 ├── 📄 README.md
 └── 📄 requirements.txt
