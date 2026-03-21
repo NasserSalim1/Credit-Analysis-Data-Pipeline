@@ -25,9 +25,9 @@ docker-compose logs postgres-dw
 ## Conectando ao Banco de Dados
 Para conectar via linha de comando:
 ```
-docker-compose exec postgres-dw psql -U user -d financial_dw
+docker-compose exec postgres-dw psql -U $DB_USER -d financial_dw
 ```
-Senha: ***REMOVED***
+# A senha é a definida em DB_PASSWORD no seu arquivo .env
 
 Para ver as tabelas criadas:
 ```
