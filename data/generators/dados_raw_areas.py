@@ -1,23 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # Geração de Dados Sintéticos — `raw.areas`
-# 
-# **Objetivo:** Popular a tabela `raw.areas` com 20 registros sintéticos.
-# 
-# **Regras de integridade:**
-# - Os códigos de área devem incluir obrigatoriamente os 8 codes referenciados na tabela fato `raw.transacoes_financeiras`: `COM`, `COMP`, `FIN`, `JUR`, `MKT`, `OP`, `RH`, `TI`.
-# - `id_area_raw` é inteiro sequencial (1–20).
-# - `codigo_area` é o campo que referencia a tabela fato.
-# 
-# **Reprodutibilidade:** `seed = 42`
-
 # In[1]:
 
 
-# ============================================================
-# 1. IMPORTS E CONFIGURAÇÕES
-# ============================================================
 import pandas as pd
 import numpy as np
 import hashlib
@@ -43,14 +29,7 @@ print(f'ingestion_ts: {INGESTION_TS}')
 # In[ ]:
 
 
-# ============================================================
-# 2. DEFINIÇÃO DAS ÁREAS
-# ============================================================
-# Os 8 códigos abaixo são obrigatórios — referenciados na tabela fato.
-# Mais 12 complementam o total de 20.
-
 AREAS = [
-    # --- Obrigatórias (referenciadas na tabela fato) ---
     {'codigo_area': 'COM',  'nome_area': 'Comercial',                  'gestor_responsavel': 'Lucas Pereira',    'email_gestor': 'lucas.pereira@empresa.com'},
     {'codigo_area': 'COMP', 'nome_area': 'Compliance',                 'gestor_responsavel': 'Daniela Souza',    'email_gestor': 'daniela.souza@empresa.com'},
     {'codigo_area': 'FIN',  'nome_area': 'Financeiro',                 'gestor_responsavel': 'Ana Oliveira',     'email_gestor': 'ana.oliveira@empresa.com'},
@@ -59,7 +38,6 @@ AREAS = [
     {'codigo_area': 'OP',   'nome_area': 'Operações',                  'gestor_responsavel': 'Sandra Nunes',     'email_gestor': 'sandra.nunes@empresa.com'},
     {'codigo_area': 'RH',   'nome_area': 'Recursos Humanos',           'gestor_responsavel': 'Fernanda Lima',    'email_gestor': 'fernanda.lima@empresa.com'},
     {'codigo_area': 'TI',   'nome_area': 'Tecnologia da Informação',   'gestor_responsavel': 'Ricardo Almeida',  'email_gestor': 'ricardo.almeida@empresa.com'},
-    # --- Complementares ---
     {'codigo_area': 'ADM',  'nome_area': 'Administração',              'gestor_responsavel': 'Carlos Silva',     'email_gestor': 'carlos.silva@empresa.com'},
     {'codigo_area': 'CTB',  'nome_area': 'Contabilidade',              'gestor_responsavel': 'Ricardo Ferreira', 'email_gestor': 'ricardo.ferreira@empresa.com'},
     {'codigo_area': 'LOG',  'nome_area': 'Logística',                  'gestor_responsavel': 'Paulo Rodrigues',  'email_gestor': 'paulo.rodrigues@empresa.com'},
@@ -80,10 +58,6 @@ print(f'Total de áreas definidas: {len(AREAS)}')
 
 # In[3]:
 
-
-# ============================================================
-# 3. CONSTRUÇÃO DO DATAFRAME + METADADOS
-# ============================================================
 
 def gerar_hash(row_dict):
     """Gera SHA-256 hash dos campos de negócio de uma linha."""
@@ -116,10 +90,6 @@ df_areas.head()
 # In[4]:
 
 
-# ============================================================
-# 4. VALIDAÇÕES
-# ============================================================
-
 CODIGOS_FATO = {'COM', 'COMP', 'FIN', 'JUR', 'MKT', 'OP', 'RH', 'TI'}
 codigos_gerados = set(df_areas['codigo_area'])
 
@@ -130,9 +100,9 @@ assert df_areas['id_area_raw'].nunique() == QTD_AREAS, 'IDs duplicados!'
 assert df_areas['codigo_area'].nunique() == QTD_AREAS, 'Códigos duplicados!'
 assert df_areas['raw_row_hash'].nunique() == QTD_AREAS, 'Hashes duplicados!'
 
-print('✔ Todos os 8 códigos da tabela fato estão presentes.')
-print('✔ Sem IDs duplicados.')
-print('✔ Sem hashes duplicados.')
+print('Todos os 8 códigos da tabela fato estão presentes.')
+print('Sem IDs duplicados.')
+print('Sem hashes duplicados.')
 print()
 print('Distribuição de areas:')
 print(df_areas[['id_area_raw', 'codigo_area', 'nome_area']].to_string(index=False))
@@ -140,10 +110,6 @@ print(df_areas[['id_area_raw', 'codigo_area', 'nome_area']].to_string(index=Fals
 
 # In[5]:
 
-
-# ============================================================
-# 5. EXPORTAÇÃO PARA CSV
-# ============================================================
 
 workspace = os.path.abspath(os.path.join(os.getcwd(), '..', '..'))
 output_dir = os.path.join(workspace, 'data', 'raw', 'areas')
@@ -154,4 +120,3 @@ df_areas.to_csv(output_path, index=False, encoding='utf-8')
 
 print(f'Arquivo exportado: {output_path}')
 print(f'Total de registros: {len(df_areas)}')
-

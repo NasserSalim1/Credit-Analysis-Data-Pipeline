@@ -1,26 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # Geração de Dados Sintéticos — `raw.funcionarios`
-# 
-# **Objetivo:** Popular a tabela `raw.funcionarios` com **150 registros** de funcionários.
-# 
-# **Características dos dados:**
-# - Nomes brasileiros realistas (prenomes + sobrenomes).
-# - CPF fictício no formato `XXX.XXX.XXX-XX` (sem validação de dígito verificador).
-# - Cargos e departamentos alinhados com os códigos de área da tabela fato.
-# - Salários distribuídos por faixa salarial consistente com o cargo.
-# - Data de admissão entre 2015 e 2024.
-# - Tipos de contrato: CLT, PJ, ESTAGIO, TEMPORARIO.
-# 
-# **Reprodutibilidade:** `seed = 42`
-
 # In[5]:
 
 
-# ============================================================
-# 1. IMPORTS E CONFIGURAÇÕES
-# ============================================================
 import pandas as pd
 import numpy as np
 import hashlib
@@ -46,10 +29,6 @@ print(f'ingestion_ts : {INGESTION_TS}')
 # In[6]:
 
 
-# ============================================================
-# 2. DADOS DE REFERÊNCIA
-# ============================================================
-
 PRENOMES_M = [
     'Carlos', 'Roberto', 'Paulo', 'Ricardo', 'Marcos', 'Felipe', 'André',
     'Rodrigo', 'Lucas', 'Diego', 'Gabriel', 'Rafael', 'Thiago', 'Bruno',
@@ -72,8 +51,6 @@ SOBRENOMES = [
     'Moreira', 'Dias', 'Pinto', 'Monteiro', 'Freitas', 'Cunha', 'Vieira',
 ]
 
-# Departamentos que aparecem na tabela fato + departamentos de suporte
-# (código, nome completo)
 DEPARTAMENTOS = [
     ('COM',  'Comercial'),
     ('COMP', 'Compliance'),
@@ -87,32 +64,25 @@ DEPARTAMENTOS = [
     ('CTB',  'Contabilidade'),
 ]
 
-# Cargo → (nível_salario_min, nível_salario_max)
 CARGOS = [
-    # Alta liderança
     ('Diretor(a)',                      25000, 50000),
     ('Gerente Sênior',                  18000, 30000),
-    # Gerência
     ('Gerente',                         12000, 22000),
     ('Coordenador(a)',                   8000, 15000),
-    # Analistas
     ('Analista Sênior',                  7000, 12000),
     ('Analista Pleno',                   5000,  9000),
     ('Analista Júnior',                  3500,  6000),
-    # Assistentes / Técnicos
     ('Assistente Administrativo',        2200,  4000),
     ('Técnico(a)',                       3000,  5500),
     ('Especialista',                     6000, 11000),
-    # TI
     ('Desenvolvedor(a) Sênior',          9000, 18000),
     ('Desenvolvedor(a) Pleno',           6000, 11000),
     ('Desenvolvedor(a) Júnior',          3500,  6000),
-    # Outros
     ('Consultor(a)',                     7000, 14000),
     ('Estagiário(a)',                    1000,  2000),
 ]
 
-TIPOS_CONTRATO = ['CLT', 'CLT', 'CLT', 'PJ', 'PJ', 'ESTAGIO', 'TEMPORARIO']  # ponderado
+TIPOS_CONTRATO = ['CLT', 'CLT', 'CLT', 'PJ', 'PJ', 'ESTAGIO', 'TEMPORARIO']
 
 print(f'Prenomes M: {len(PRENOMES_M)} | F: {len(PRENOMES_F)}')
 print(f'Sobrenomes: {len(SOBRENOMES)}')
@@ -122,10 +92,6 @@ print(f'Cargos: {len(CARGOS)}')
 
 # In[7]:
 
-
-# ============================================================
-# 3. FUNÇÕES AUXILIARES
-# ============================================================
 
 def gerar_cpf(n):
     """CPF fictício no formato XXX.XXX.XXX-XX (sem dígito verificador real)."""
@@ -156,16 +122,11 @@ print('Funções auxiliares definidas.')
 # In[8]:
 
 
-# ============================================================
-# 4. GERAÇÃO DOS FUNCIONÁRIOS
-# ============================================================
 rng_geral  = np.random.RandomState(SEED)
 rng_sal    = np.random.RandomState(SEED + 10)
 
 registros = []
 
-# Distribuição de departamentos: proporções aproximadas de uma empresa real
-# Total: 150 funcionários
 DISTRIB_DEPTO = {
     'COM':  22,
     'TI':   26,
@@ -181,10 +142,8 @@ DISTRIB_DEPTO = {
 assert sum(DISTRIB_DEPTO.values()) == QTD_FUNCIONARIOS, \
     f'Soma da distribuição = {sum(DISTRIB_DEPTO.values())}, esperado {QTD_FUNCIONARIOS}'
 
-# Mapa de código → nome do departamento
 DEPTO_NOME = dict(DEPARTAMENTOS)
 
-# Cargos mais adequados por departamento
 CARGOS_POR_DEPTO = {
     'TI':   ['Desenvolvedor(a) Sênior', 'Desenvolvedor(a) Pleno', 'Desenvolvedor(a) Júnior',
               'Analista Sênior', 'Analista Pleno', 'Especialista', 'Gerente', 'Coordenador(a)'],
@@ -207,7 +166,6 @@ CARGOS_POR_DEPTO = {
     'CTB':  ['Analista Sênior', 'Analista Pleno', 'Analista Júnior', 'Coordenador(a)',
               'Especialista', 'Gerente', 'Assistente Administrativo'],
 }
-# Mapa cargo → (sal_min, sal_max)
 CARGO_SALARIO = {c[0]: (c[1], c[2]) for c in CARGOS}
 
 seq = 1
@@ -215,7 +173,6 @@ for cod_depto, qtd in DISTRIB_DEPTO.items():
     cargos_disponiveis = CARGOS_POR_DEPTO[cod_depto]
 
     for i in range(qtd):
-        # Gênero
         genero = rng_geral.choice(['M', 'F'])
         prenome   = rng_geral.choice(PRENOMES_M if genero == 'M' else PRENOMES_F)
         sobrenome = rng_geral.choice(SOBRENOMES)
@@ -223,14 +180,11 @@ for cod_depto, qtd in DISTRIB_DEPTO.items():
 
         cpf = gerar_cpf(seq * 1000 + 100)
 
-        # Cargo (distribuição: mais analistas/técnicos que diretores)
         cargo = rng_geral.choice(cargos_disponiveis)
 
-        # Salário dentro da faixa do cargo
         sal_min, sal_max = CARGO_SALARIO.get(cargo, (3000, 8000))
         salario = round(rng_sal.uniform(sal_min, sal_max), 2)
 
-        # Tipo de contrato — estagiários ganham menos
         if cargo == 'Estagiário(a)':
             tipo_contrato = 'ESTAGIO'
         elif cargo == 'Consultor(a)':
@@ -260,10 +214,6 @@ print(f'Funcionários gerados: {len(registros)}')
 # In[9]:
 
 
-# ============================================================
-# 5. CONSOLIDAÇÃO E METADADOS
-# ============================================================
-
 for seq_meta, row in enumerate(registros, start=1):
     row['ingestion_id']  = INGESTION_ID
     row['ingestion_ts']  = INGESTION_TS
@@ -286,10 +236,6 @@ df_func.head()
 # In[10]:
 
 
-# ============================================================
-# 6. VALIDAÇÕES
-# ============================================================
-
 DEPTOS_FATO = {'COM', 'COMP', 'FIN', 'JUR', 'MKT', 'OP', 'RH', 'TI'}
 
 assert len(df_func) == QTD_FUNCIONARIOS
@@ -298,9 +244,9 @@ assert df_func['cpf'].nunique() == QTD_FUNCIONARIOS, 'CPFs duplicados!'
 assert df_func['salario'].min() > 0
 assert DEPTOS_FATO.issubset(set(df_func['departamento'])), 'Departamentos da fato ausentes!'
 
-print('✔ 150 funcionários gerados.')
-print('✔ CPFs únicos, salários positivos.')
-print('✔ Todos os departamentos da tabela fato estão presentes.')
+print('150 funcionários gerados.')
+print('CPFs únicos, salários positivos.')
+print('Todos os departamentos da tabela fato estão presentes.')
 print()
 print('Distribuição por departamento:')
 print(df_func['departamento'].value_counts().sort_index().to_string())
@@ -315,10 +261,6 @@ print(df_func['salario'].describe().round(2).to_string())
 # In[11]:
 
 
-# ============================================================
-# 7. EXPORTAÇÃO PARA CSV
-# ============================================================
-
 workspace   = os.path.abspath(os.path.join(os.getcwd(), '..', '..'))
 output_dir  = os.path.join(workspace, 'data', 'raw', 'funcionarios')
 os.makedirs(output_dir, exist_ok=True)
@@ -328,4 +270,3 @@ df_func.to_csv(output_path, index=False, encoding='utf-8')
 
 print(f'Arquivo exportado: {output_path}')
 print(f'Total de registros: {len(df_func)}')
-

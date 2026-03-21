@@ -1,26 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # Geração de Dados Sintéticos — `raw.fornecedores_clientes`
-# 
-# **Objetivo:** Popular a tabela `raw.fornecedores_clientes` com **250 registros**.
-# 
-# **Regras de integridade:**
-# - Os **200 IDs já referenciados** na tabela fato `raw.transacoes_financeiras` devem estar presentes.
-# - Formatos de ID existentes (preservados do notebook de transações):
-#   - Numérico: `1000000`, `1000004`, … (77 IDs)
-#   - `FORN-XXXXX`: `FORN-00002`, … (67 IDs)
-#   - `ACC-XXXXX`: `ACC-00007`, … (56 IDs)
-# - Mais 50 novos registros são adicionados (para atingir 250 total).
-# 
-# **Reprodutibilidade:** `seed = 42`
-
 # In[1]:
 
 
-# ============================================================
-# 1. IMPORTS E CONFIGURAÇÕES
-# ============================================================
 import pandas as pd
 import numpy as np
 import hashlib
@@ -47,9 +30,6 @@ print(f'ingestion_ts : {INGESTION_TS}')
 # In[2]:
 
 
-# ============================================================
-# 2. LEITURA DOS IDs JÁ EXISTENTES NA TABELA FATO
-# ============================================================
 workspace     = os.path.abspath(os.path.join(os.getcwd(), '..', '..'))
 fato_dir      = os.path.join(workspace, 'data', 'raw', 'transacoes_financeiras')
 fato_csvs     = sorted(glob.glob(os.path.join(fato_dir, '*.csv')))
@@ -59,7 +39,6 @@ df_fato  = pd.concat(dfs_fato, ignore_index=True)
 
 ids_existentes = sorted(df_fato['id_fornecedor_raw'].astype(str).unique())
 
-# Classificar por padrão
 ids_num  = [i for i in ids_existentes if i.isdigit()]
 ids_forn = [i for i in ids_existentes if i.startswith('FORN')]
 ids_acc  = [i for i in ids_existentes if i.startswith('ACC')]
@@ -70,10 +49,6 @@ print(f'Total IDs existentes: {len(ids_existentes)}')
 
 # In[3]:
 
-
-# ============================================================
-# 3. DADOS DE REFERÊNCIA PARA GERAÇÃO SINTÉTICA
-# ============================================================
 
 PREFIXOS_EMPRESAS = [
     'Tech', 'Data', 'Global', 'Prime', 'Alpha', 'Beta', 'Nexo', 'Vox',
@@ -128,12 +103,7 @@ print('Funções auxiliares definidas.')
 # In[4]:
 
 
-# ============================================================
-# 4. GERAÇÃO DOS 200 REGISTROS EXISTENTES (da tabela fato)
-# ============================================================
-
 TIPOS_FORN = ['FORNECEDOR', 'CLIENTE', 'AMBOS']
-# Numérico → FORNECEDOR | FORN → FORNECEDOR ou AMBOS | ACC → CLIENTE ou AMBOS
 
 def tipo_para_id(id_str, idx):
     r = random.Random(idx * 7)
@@ -170,15 +140,6 @@ print(f'Registros baseados na tabela fato gerados: {len(registros_existentes)}')
 # In[5]:
 
 
-# ============================================================
-# 5. GERAÇÃO DOS 50 NOVOS REGISTROS
-# ============================================================
-# Novos IDs — seguindo os padrões já existentes, usando faixas numéricas
-# superiores para não conflitar:
-#   - 17 novos FORN-XXXXX  (a partir de FORN-00201)
-#   - 16 novos ACC-XXXXX   (a partir de ACC-00201)
-#   - 17 novos numéricos   (a partir de 1000201)
-
 novos_forn = [f'FORN-{i:05d}' for i in range(201, 218)]
 novos_acc  = [f'ACC-{i:05d}'  for i in range(201, 217)]
 novos_num  = [str(1000200 + i) for i in range(1, 18)]
@@ -211,10 +172,6 @@ print(f'Novos registros gerados: {len(registros_novos)}')
 # In[6]:
 
 
-# ============================================================
-# 6. CONSOLIDAÇÃO E METADADOS
-# ============================================================
-
 todos_registros = registros_existentes + registros_novos
 
 for seq, row in enumerate(todos_registros, start=1):
@@ -238,13 +195,8 @@ df_forn.head()
 # In[7]:
 
 
-# ============================================================
-# 7. VALIDAÇÕES
-# ============================================================
-
 assert len(df_forn) == QTD_TOTAL, f'Esperado {QTD_TOTAL}, gerado {len(df_forn)}'
 
-# Todos os IDs da tabela fato presentes
 ids_gerados = set(df_forn['id_fornecedor_raw'].astype(str))
 ausentes    = [i for i in ids_existentes if i not in ids_gerados]
 assert len(ausentes) == 0, f'IDs ausentes: {ausentes[:5]}'
@@ -252,8 +204,8 @@ assert len(ausentes) == 0, f'IDs ausentes: {ausentes[:5]}'
 assert df_forn['id_fornecedor_raw'].nunique() == QTD_TOTAL, 'IDs duplicados!'
 assert df_forn['cnpj_cpf'].nunique() == QTD_TOTAL, 'CNPJs duplicados!'
 
-print('✔ Todos os 200 IDs da tabela fato estão presentes.')
-print('✔ Sem IDs duplicados.')
+print('Todos os 200 IDs da tabela fato estão presentes.')
+print('Sem IDs duplicados.')
 print()
 print('Distribuição por tipo_fornecedor:')
 print(df_forn['tipo_fornecedor'].value_counts().to_string())
@@ -265,10 +217,6 @@ print(df_forn.tail(5)[['id_fornecedor_raw', 'nome_fornecedor', 'tipo_fornecedor'
 # In[8]:
 
 
-# ============================================================
-# 8. EXPORTAÇÃO PARA CSV
-# ============================================================
-
 output_dir  = os.path.join(workspace, 'data', 'raw', 'fornecedores_clientes')
 os.makedirs(output_dir, exist_ok=True)
 
@@ -277,4 +225,3 @@ df_forn.to_csv(output_path, index=False, encoding='utf-8')
 
 print(f'Arquivo exportado: {output_path}')
 print(f'Total de registros: {len(df_forn)}')
-

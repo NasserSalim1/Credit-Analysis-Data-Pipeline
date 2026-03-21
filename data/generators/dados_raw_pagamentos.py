@@ -1,27 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # Geração de Dados Sintéticos — `raw.pagamentos`
-# 
-# **Objetivo:** Popular a tabela `raw.pagamentos` com **21.500 registros**.
-# 
-# **Regras de integridade:**
-# - `id_transacao_raw` referencia transações da tabela fato `raw.transacoes_financeiras`.
-# - São consideradas preferencialmente transações do tipo **DESPESA** com status **PAGO** ou **ATRASADO**.
-#   - DESPESA PAGO: 19.464 registros → todos incluídos.
-#   - DESPESA ATRASADO: 2.937 disponíveis → 2.036 amostrados para completar 21.500.
-# - `id_transacao_raw` é o sufixo numérico do TR-XXXXX (e.g., TR-00140 → 140).
-# - `data_pagamento` é a `data_transacao` da fato + 0–5 dias úteis.
-# - `valor_pago` é o `valor_liquido` da fato (com pequena variação para ATRASADO).
-# 
-# **Reprodutibilidade:** `seed = 42`
-
 # In[1]:
 
 
-# ============================================================
-# 1. IMPORTS E CONFIGURAÇÕES
-# ============================================================
 import pandas as pd
 import numpy as np
 import hashlib
@@ -48,9 +30,6 @@ print(f'ingestion_ts : {INGESTION_TS}')
 # In[2]:
 
 
-# ============================================================
-# 2. LEITURA DA TABELA FATO
-# ============================================================
 workspace = os.path.abspath(os.path.join(os.getcwd(), '..', '..'))
 fato_dir  = os.path.join(workspace, 'data', 'raw', 'transacoes_financeiras')
 fato_csvs = sorted(glob.glob(os.path.join(fato_dir, '*.csv')))
@@ -61,7 +40,6 @@ dfs = [pd.read_csv(f, usecols=[
 ]) for f in fato_csvs]
 df_fato = pd.concat(dfs, ignore_index=True)
 
-# Extrair sufixo numérico: TR-00140 → 140
 df_fato['id_transacao_num'] = df_fato['id_transacao_raw'].str.replace('TR-', '').astype(int)
 df_fato['data_transacao']   = pd.to_datetime(df_fato['data_transacao'])
 df_fato['valor_liquido']    = df_fato['valor_liquido'].astype(float)
@@ -73,17 +51,11 @@ print(df_fato.groupby(['tipo_transacao', 'status_pagamento']).size().unstack(fil
 # In[3]:
 
 
-# ============================================================
-# 3. SELEÇÃO DAS TRANSAÇÕES DE REFERÊNCIA
-# ============================================================
-
-# PAGO DESPESA — todos incluídos
 df_pago = df_fato[
     (df_fato['tipo_transacao'] == 'DESPESA') &
     (df_fato['status_pagamento'] == 'PAGO')
 ].copy()
 
-# ATRASADO DESPESA — amostrar para completar 21.500
 qtd_atrasado_necessario = QTD_PAGAMENTOS - len(df_pago)
 df_atrasado = df_fato[
     (df_fato['tipo_transacao'] == 'DESPESA') &
@@ -94,7 +66,6 @@ df_atrasado = df_fato[
 ])), random_state=SEED).copy()
 
 df_base = pd.concat([df_pago, df_atrasado], ignore_index=True)
-# Se ainda faltar, completar com CANCELADO DESPESA
 if len(df_base) < QTD_PAGAMENTOS:
     faltam = QTD_PAGAMENTOS - len(df_base)
     df_canc = df_fato[
@@ -115,10 +86,6 @@ print(f'  ATRASADO:  {len(df_atrasado):,}')
 
 # In[4]:
 
-
-# ============================================================
-# 4. GERAÇÃO DOS REGISTROS DE PAGAMENTO
-# ============================================================
 
 METODOS_PAGAMENTO = ['PIX', 'TED', 'BOLETO', 'CARTAO', 'TRANSFERENCIA', 'CHEQUE']
 PESOS_METODO      = [0.40, 0.20, 0.20, 0.10, 0.07, 0.03]
@@ -142,21 +109,18 @@ for seq, row in df_base.iterrows():
     id_trans_int = int(row['id_transacao_num'])
     status       = row['status_pagamento']
 
-    # Data de pagamento: data_transacao + 0 a 5 dias (ATRASADO pode ter +5 a +30)
     if status == 'ATRASADO':
         delta_dias = rng_dias.randint(5, 31)
     else:
         delta_dias = rng_dias.randint(0, 6)
     data_pag = (row['data_transacao'] + timedelta(days=int(delta_dias))).strftime('%Y-%m-%d')
 
-    # Valor pago: mesmo que valor_liquido (variação ±2% para ATRASADO com juros)
     if status == 'ATRASADO':
         fator = 1.0 + rng_valor.uniform(0.005, 0.02)
         valor = round(float(row['valor_liquido']) * fator, 2)
     else:
         valor = round(float(row['valor_liquido']), 2)
 
-    # Método de pagamento: usar o mesmo da fato quando disponível, ou sortear
     metodo_fato = str(row.get('forma_pagamento', '')).upper()
     if metodo_fato in METODOS_PAGAMENTO:
         metodo = metodo_fato
@@ -182,10 +146,6 @@ print(f'Registros de pagamento gerados: {len(registros):,}')
 # In[5]:
 
 
-# ============================================================
-# 5. CONSOLIDAÇÃO E METADADOS
-# ============================================================
-
 for seq, row in enumerate(registros, start=1):
     row['ingestion_id']  = INGESTION_ID
     row['ingestion_ts']  = INGESTION_TS
@@ -207,18 +167,14 @@ df_pag.head()
 # In[6]:
 
 
-# ============================================================
-# 6. VALIDAÇÕES
-# ============================================================
-
 assert len(df_pag) == QTD_PAGAMENTOS, f'Esperado {QTD_PAGAMENTOS:,}, gerado {len(df_pag):,}'
 assert df_pag['id_pagamento_raw'].nunique() == QTD_PAGAMENTOS, 'IDs duplicados!'
 assert df_pag['comprovante'].nunique() == QTD_PAGAMENTOS, 'Comprovantes duplicados!'
 assert df_pag['valor_pago'].min() > 0, 'Valores negativos ou zero!'
 assert not df_pag['data_pagamento'].isna().any(), 'Datas nulas!'
 
-print(f'✔ {len(df_pag):,} registros gerados.')
-print('✔ IDs únicos, comprovantes únicos, valores positivos.')
+print(f'{len(df_pag):,} registros gerados.')
+print('IDs únicos, comprovantes únicos, valores positivos.')
 print()
 print('Distribuição por metodo_pagamento:')
 print(df_pag['metodo_pagamento'].value_counts().to_string())
@@ -230,10 +186,6 @@ print(df_pag['valor_pago'].describe().round(2).to_string())
 # In[7]:
 
 
-# ============================================================
-# 7. EXPORTAÇÃO PARA CSV
-# ============================================================
-
 output_dir  = os.path.join(workspace, 'data', 'raw', 'pagamentos')
 os.makedirs(output_dir, exist_ok=True)
 
@@ -242,4 +194,3 @@ df_pag.to_csv(output_path, index=False, encoding='utf-8')
 
 print(f'Arquivo exportado: {output_path}')
 print(f'Total de registros: {len(df_pag):,}')
-

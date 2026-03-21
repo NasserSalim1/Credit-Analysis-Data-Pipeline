@@ -1,23 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # Geração de Dados Sintéticos — `raw.categorias_contabeis`
-# 
-# **Objetivo:** Popular a tabela `raw.categorias_contabeis` com 40 registros.
-# 
-# **Regras de integridade:**
-# - Os IDs 1–8 são obrigatórios (referenciados na tabela fato `raw.transacoes_financeiras`).
-# - Categorias consistentes com o Plano de Contas Referencial Brasileiro.
-# - `id_categoria_raw` é inteiro sequencial (1–40).
-# 
-# **Reprodutibilidade:** `seed = 42`
-
 # In[3]:
 
 
-# ============================================================
-# 1. IMPORTS E CONFIGURAÇÕES
-# ============================================================
 import pandas as pd
 import numpy as np
 import hashlib
@@ -43,19 +29,7 @@ print(f'ingestion_ts: {INGESTION_TS}')
 # In[4]:
 
 
-# ============================================================
-# 2. DEFINIÇÃO DAS CATEGORIAS CONTÁBEIS
-# ============================================================
-# IDs 1–8: OBRIGATÓRIOS — referenciados na tabela fato.
-# IDs 9–40: complementares para um plano de contas corporativo completo.
-#
-# Formato codigo_contabil: Grupo.SubGrupo.Conta  (padrão ITG 1000 / NBC TG)
-#   4.x.xx = Receitas
-#   2.x.xx = Despesas Operacionais
-#   5.x.xx = Deduções / Impostos sobre Receita
-
 CATEGORIAS = [
-    # ── IDs 1–8 (usados na tabela fato) ──────────────────────────────────────
     (1,  'Venda de Produtos',            'RECEITA', '4.1.01'),
     (2,  'Venda de Serviços',            'RECEITA', '4.1.02'),
     (3,  'Receita Financeira',           'RECEITA', '4.2.01'),
@@ -64,7 +38,6 @@ CATEGORIAS = [
     (6,  'Material de Escritório',       'DESPESA', '2.2.01'),
     (7,  'Aluguel',                      'DESPESA', '2.2.02'),
     (8,  'Energia Elétrica',             'DESPESA', '2.2.03'),
-    # ── IDs 9–40 (complementares) ────────────────────────────────────────────
     (9,  'Telefonia e Internet',         'DESPESA', '2.2.04'),
     (10, 'Manutenção Predial',           'DESPESA', '2.2.05'),
     (11, 'Honorários Profissionais',     'DESPESA', '2.3.01'),
@@ -106,10 +79,6 @@ print(f'Total de categorias definidas: {len(CATEGORIAS)}')
 # In[5]:
 
 
-# ============================================================
-# 3. CONSTRUÇÃO DO DATAFRAME + METADADOS
-# ============================================================
-
 def gerar_hash(row_dict):
     campos = ['id_categoria_raw', 'nome_categoria', 'tipo_categoria', 'codigo_contabil']
     conteudo = '|'.join(str(row_dict.get(c, '')) for c in campos)
@@ -140,11 +109,7 @@ df_cat.head(10)
 # In[6]:
 
 
-# ============================================================
-# 4. VALIDAÇÕES
-# ============================================================
-
-IDS_FATO = set(range(1, 9))  # IDs 1–8 usados na tabela fato
+IDS_FATO = set(range(1, 9))
 ids_gerados = set(df_cat['id_categoria_raw'])
 
 assert IDS_FATO.issubset(ids_gerados), f'IDs ausentes: {IDS_FATO - ids_gerados}'
@@ -152,9 +117,9 @@ assert df_cat['id_categoria_raw'].nunique() == QTD_CATEGORIAS
 assert df_cat['codigo_contabil'].nunique() == QTD_CATEGORIAS
 assert df_cat['raw_row_hash'].nunique()    == QTD_CATEGORIAS
 
-print('✔ IDs 1–8 (tabela fato) presentes.')
-print('✔ Sem IDs duplicados.')
-print('✔ Sem códigos contábeis duplicados.')
+print('IDs 1–8 (tabela fato) presentes.')
+print('Sem IDs duplicados.')
+print('Sem códigos contábeis duplicados.')
 print()
 print('Distribuição por tipo_categoria:')
 print(df_cat['tipo_categoria'].value_counts().to_string())
@@ -162,10 +127,6 @@ print(df_cat['tipo_categoria'].value_counts().to_string())
 
 # In[7]:
 
-
-# ============================================================
-# 5. EXPORTAÇÃO PARA CSV
-# ============================================================
 
 workspace   = os.path.abspath(os.path.join(os.getcwd(), '..', '..'))
 output_dir  = os.path.join(workspace, 'data', 'raw', 'categorias_contabeis')
@@ -176,4 +137,3 @@ df_cat.to_csv(output_path, index=False, encoding='utf-8')
 
 print(f'Arquivo exportado: {output_path}')
 print(f'Total de registros: {len(df_cat)}')
-

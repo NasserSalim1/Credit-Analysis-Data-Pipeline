@@ -7,21 +7,17 @@ import subprocess
 import sys
 import os
 
-# Diretórios dos notebooks dentro do container
 GENERATORS_DIR = "/app/data/generators"
 LOAD_RAW_DIR   = "/app/etl/scripts/load_raw"
 
-# Tuplas (diretório, notebook) na ordem de execução
 NOTEBOOKS = [
-    # Etapa 1 — Geração dos dados sintéticos (ordem de dependência)
-    (GENERATORS_DIR, "dados_transacoes_financeiras.ipynb"),   # fato — gera os CSVs mensais primeiro
+    (GENERATORS_DIR, "dados_transacoes_financeiras.ipynb"),
     (GENERATORS_DIR, "dados_raw_areas.ipynb"),
     (GENERATORS_DIR, "dados_raw_categorias_contabeis.ipynb"),
-    (GENERATORS_DIR, "dados_raw_fornecedores_clientes.ipynb"),  # depende dos CSVs de transacoes
+    (GENERATORS_DIR, "dados_raw_fornecedores_clientes.ipynb"),
     (GENERATORS_DIR, "dados_raw_funcionarios.ipynb"),
-    (GENERATORS_DIR, "dados_raw_pagamentos.ipynb"),             # depende dos CSVs de transacoes
-    (GENERATORS_DIR, "dados_raw_recebimentos.ipynb"),           # depende dos CSVs de transacoes
-    # Etapa 2 — Carga no banco (depende de todos os CSVs gerados acima)
+    (GENERATORS_DIR, "dados_raw_pagamentos.ipynb"),
+    (GENERATORS_DIR, "dados_raw_recebimentos.ipynb"),
     (LOAD_RAW_DIR,   "banco.ipynb"),
 ]
 
@@ -38,7 +34,6 @@ def main():
     print(" TCC — Inicialização do Data Warehouse RAW")
     print("=============================================")
 
-    # ── 1. Instala dependências mínimas ──────────────────────────────────────
     print("\n[1/3] Instalando dependências...")
     run([
         sys.executable, "-m", "pip", "install",
@@ -51,11 +46,9 @@ def main():
         "ipykernel==6.27.1",
     ])
 
-    # Registra o kernel para o nbconvert encontrar
     run([sys.executable, "-m", "ipykernel", "install",
          "--user", "--name", "python3", "--display-name", "Python 3"])
 
-    # ── 2. Executa os notebooks em ordem ─────────────────────────────────────
     total = len(NOTEBOOKS)
 
     for i, (nb_dir, nb) in enumerate(NOTEBOOKS, start=1):
