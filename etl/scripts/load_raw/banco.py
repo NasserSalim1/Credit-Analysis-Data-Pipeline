@@ -55,7 +55,7 @@ df.head()
 
 
 # pasta relativa ao workspace (não comece com barra!)
-workspace = os.path.abspath(os.path.join(os.getcwd(), "..", ".."))
+workspace = os.path.abspath(os.path.join(os.getcwd(), "..", "..", ".."))
 pasta = os.path.join(workspace, "data", "raw", "transacoes_financeiras")
 
 caminhos = [os.path.join(pasta, nome) for nome in os.listdir(pasta)]
@@ -84,7 +84,7 @@ print("All files copied.")
 # In[6]:
 
 
-workspace = os.path.abspath(os.path.join(os.getcwd(), "..", ".."))
+workspace = os.path.abspath(os.path.join(os.getcwd(), "..", "..", ".."))
 pasta = os.path.join(workspace, "data", "raw", "areas")
 
 caminhos = [os.path.join(pasta, nome) for nome in os.listdir(pasta)]
@@ -113,7 +113,7 @@ print("All files copied.")
 # In[7]:
 
 
-workspace = os.path.abspath(os.path.join(os.getcwd(), "..", ".."))
+workspace = os.path.abspath(os.path.join(os.getcwd(), "..", "..", ".."))
 pasta = os.path.join(workspace, "data", "raw", "categorias_contabeis")
 
 caminhos = [os.path.join(pasta, nome) for nome in os.listdir(pasta)]
@@ -142,7 +142,7 @@ print("All files copied.")
 # In[8]:
 
 
-workspace = os.path.abspath(os.path.join(os.getcwd(), "..", ".."))
+workspace = os.path.abspath(os.path.join(os.getcwd(), "..", "..", ".."))
 pasta = os.path.join(workspace, "data", "raw", "fornecedores_clientes")
 
 caminhos = [os.path.join(pasta, nome) for nome in os.listdir(pasta)]
@@ -171,7 +171,7 @@ print("All files copied.")
 # In[9]:
 
 
-workspace = os.path.abspath(os.path.join(os.getcwd(), "..", ".."))
+workspace = os.path.abspath(os.path.join(os.getcwd(), "..", "..", ".."))
 pasta = os.path.join(workspace, "data", "raw", "funcionarios")
 
 caminhos = [os.path.join(pasta, nome) for nome in os.listdir(pasta)]
@@ -200,7 +200,7 @@ print("All files copied.")
 # In[10]:
 
 
-workspace = os.path.abspath(os.path.join(os.getcwd(), "..", ".."))
+workspace = os.path.abspath(os.path.join(os.getcwd(), "..", "..", ".."))
 pasta = os.path.join(workspace, "data", "raw", "pagamentos")
 
 caminhos = [os.path.join(pasta, nome) for nome in os.listdir(pasta)]
@@ -229,7 +229,7 @@ print("All files copied.")
 # In[11]:
 
 
-workspace = os.path.abspath(os.path.join(os.getcwd(), "..", ".."))
+workspace = os.path.abspath(os.path.join(os.getcwd(), "..", "..", ".."))
 pasta = os.path.join(workspace, "data", "raw", "recebimentos")
 
 caminhos = [os.path.join(pasta, nome) for nome in os.listdir(pasta)]
