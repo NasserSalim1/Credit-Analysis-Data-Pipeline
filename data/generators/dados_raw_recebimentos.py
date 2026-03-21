@@ -1,26 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # Geração de Dados Sintéticos — `raw.recebimentos`
-# 
-# **Objetivo:** Popular a tabela `raw.recebimentos` com **18.200 registros**.
-# 
-# **Regras de integridade:**
-# - `id_transacao_raw` referencia transações da tabela fato `raw.transacoes_financeiras`.
-# - São consideradas transações do tipo **RECEITA** (total: 15.982).
-# - Como 18.200 > 15.982, algumas transações RECEITA PAGO possuem **2 recebimentos parciais** (entrada em parcelas — prática comum em contratos de longo prazo).
-# - `id_transacao_raw` é o sufixo numérico do TR-XXXXX (e.g., TR-00141 → 141).
-# - `data_recebimento` é a `data_transacao` da fato + 0–3 dias.
-# - `valor_recebido` é o `valor_liquido` da fato (ou metade dele para registros duplicados).
-# 
-# **Reprodutibilidade:** `seed = 42`
-
 # In[1]:
 
 
-# ============================================================
-# 1. IMPORTS E CONFIGURAÇÕES
-# ============================================================
 import pandas as pd
 import numpy as np
 import hashlib
@@ -47,9 +30,6 @@ print(f'ingestion_ts : {INGESTION_TS}')
 # In[2]:
 
 
-# ============================================================
-# 2. LEITURA DA TABELA FATO
-# ============================================================
 workspace = os.path.abspath(os.path.join(os.getcwd(), '..', '..'))
 fato_dir  = os.path.join(workspace, 'data', 'raw', 'transacoes_financeiras')
 fato_csvs = sorted(glob.glob(os.path.join(fato_dir, '*.csv')))
@@ -71,28 +51,22 @@ print(df_fato.groupby(['tipo_transacao', 'status_pagamento']).size().unstack(fil
 # In[3]:
 
 
-# ============================================================
-# 3. SELEÇÃO DAS TRANSAÇÕES DE REFERÊNCIA
-# ============================================================
-
 df_receita = df_fato[df_fato['tipo_transacao'] == 'RECEITA'].copy().reset_index(drop=True)
 total_receita = len(df_receita)
-extras_necessarios = QTD_RECEBIMENTOS - total_receita  # ≈ 2.218
+extras_necessarios = QTD_RECEBIMENTOS - total_receita
 
 print(f'Total RECEITA disponível: {total_receita:,}')
 print(f'Extras (parcelas adicionais) necessários: {extras_necessarios:,}')
 
-# Selecionar as transações que terão 2 recebimentos (parcelamento)
-# Preferência: RECEITA PAGO de maior valor (contratos relevantes)
 df_pago_receita = df_receita[df_receita['status_pagamento'] == 'PAGO'] \
     .sort_values('valor_liquido', ascending=False)
 
 df_duplicadas = df_pago_receita.head(extras_necessarios).copy()
-df_duplicadas['parcela'] = 2  # segunda parcela
-df_receita['parcela']    = 1  # primeira parcela (ou única)
+df_duplicadas['parcela'] = 2
+df_receita['parcela']    = 1
 
 df_base = pd.concat([df_receita, df_duplicadas], ignore_index=True)
-df_base = df_base.sample(frac=1, random_state=SEED).reset_index(drop=True)  # embaralhar
+df_base = df_base.sample(frac=1, random_state=SEED).reset_index(drop=True)
 df_base = df_base.head(QTD_RECEBIMENTOS).reset_index(drop=True)
 
 print(f'\nBase para geração: {len(df_base):,} registros')
@@ -100,10 +74,6 @@ print(f'\nBase para geração: {len(df_base):,} registros')
 
 # In[4]:
 
-
-# ============================================================
-# 4. GERAÇÃO DOS REGISTROS DE RECEBIMENTO
-# ============================================================
 
 METODOS_RECEBIMENTO = ['PIX', 'TED', 'BOLETO', 'DEPOSITO', 'TRANSFERENCIA', 'CHEQUE']
 PESOS_METODO        = [0.45, 0.20, 0.18, 0.08, 0.06, 0.03]
@@ -128,29 +98,24 @@ for seq, row in df_base.iterrows():
     status       = row['status_pagamento']
     parcela      = int(row.get('parcela', 1))
 
-    # Data de recebimento
     if status == 'ATRASADO':
         delta_dias = rng_dias.randint(3, 15)
     elif parcela == 2:
-        delta_dias = rng_dias.randint(28, 45)  # 2ª parcela chega ~30 dias depois
+        delta_dias = rng_dias.randint(28, 45)
     else:
         delta_dias = rng_dias.randint(0, 4)
     data_rec = (row['data_transacao'] + timedelta(days=int(delta_dias))).strftime('%Y-%m-%d')
 
-    # Valor recebido
     val_base = float(row['valor_liquido'])
     if parcela == 2:
-        # 2ª parcela: metade do valor + pequenos juros
         fator = rng_valor.uniform(0.48, 0.52)
         valor = round(val_base * fator, 2)
     elif status == 'ATRASADO':
-        # Recebimento com pequena multa/desconto de negociação
         fator = rng_valor.uniform(0.95, 1.03)
         valor = round(val_base * fator, 2)
     else:
         valor = round(val_base, 2)
 
-    # Método de recebimento
     metodo_fato = str(row.get('forma_pagamento', '')).upper()
     if metodo_fato in METODOS_RECEBIMENTO:
         metodo = metodo_fato
@@ -176,10 +141,6 @@ print(f'Registros de recebimento gerados: {len(registros):,}')
 # In[5]:
 
 
-# ============================================================
-# 5. CONSOLIDAÇÃO E METADADOS
-# ============================================================
-
 for seq, row in enumerate(registros, start=1):
     row['ingestion_id']  = INGESTION_ID
     row['ingestion_ts']  = INGESTION_TS
@@ -201,24 +162,19 @@ df_rec.head()
 # In[6]:
 
 
-# ============================================================
-# 6. VALIDAÇÕES
-# ============================================================
-
 assert len(df_rec) == QTD_RECEBIMENTOS, f'Esperado {QTD_RECEBIMENTOS:,}, gerado {len(df_rec):,}'
 assert df_rec['id_recebimento_raw'].nunique() == QTD_RECEBIMENTOS, 'IDs duplicados!'
 assert df_rec['comprovante'].nunique() == QTD_RECEBIMENTOS, 'Comprovantes duplicados!'
 assert df_rec['valor_recebido'].min() > 0, 'Valores negativos ou zero!'
 
-# Verificar que todos os id_transacao_raw referenciados existem na tabela fato
 ids_fato = set(df_fato['id_transacao_num'].astype(int))
 ids_rec  = set(df_rec['id_transacao_raw'].astype(int))
 nao_existentes = ids_rec - ids_fato
 assert len(nao_existentes) == 0, f'IDs de transação inválidos: {list(nao_existentes)[:5]}'
 
-print(f'✔ {len(df_rec):,} registros gerados.')
-print('✔ Comprovantes únicos, valores positivos.')
-print('✔ Todos os id_transacao_raw existem na tabela fato.')
+print(f'{len(df_rec):,} registros gerados.')
+print('Comprovantes únicos, valores positivos.')
+print('Todos os id_transacao_raw existem na tabela fato.')
 print()
 print('Distribuição por metodo_recebimento:')
 print(df_rec['metodo_recebimento'].value_counts().to_string())
@@ -230,10 +186,6 @@ print(df_rec['valor_recebido'].describe().round(2).to_string())
 # In[7]:
 
 
-# ============================================================
-# 7. EXPORTAÇÃO PARA CSV
-# ============================================================
-
 output_dir  = os.path.join(workspace, 'data', 'raw', 'recebimentos')
 os.makedirs(output_dir, exist_ok=True)
 
@@ -242,4 +194,3 @@ df_rec.to_csv(output_path, index=False, encoding='utf-8')
 
 print(f'Arquivo exportado: {output_path}')
 print(f'Total de registros: {len(df_rec):,}')
-
