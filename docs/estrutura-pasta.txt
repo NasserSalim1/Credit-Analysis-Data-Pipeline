@@ -1,90 +1,86 @@
 D:\Faculdade\TCC\
-├── 📁 .git (omitido: estrutura interna)
-├── 📁 .venv (omitido: ambiente virtual)
-├── 📁 data
-│   ├── 📁 exports (vazio)
-│   ├── 📁 generators               ← notebooks e scripts de geração de dados sintéticos
-│   │   ├── 📄 dados_raw_areas.ipynb
-│   │   ├── 📄 dados_raw_areas.py
-│   │   ├── 📄 dados_raw_categorias_contabeis.ipynb
-│   │   ├── 📄 dados_raw_categorias_contabeis.py
-│   │   ├── 📄 dados_raw_fornecedores_clientes.ipynb
-│   │   ├── 📄 dados_raw_fornecedores_clientes.py
-│   │   ├── 📄 dados_raw_funcionarios.ipynb
-│   │   ├── 📄 dados_raw_funcionarios.py
-│   │   ├── 📄 dados_raw_pagamentos.ipynb
-│   │   ├── 📄 dados_raw_pagamentos.py
-│   │   ├── 📄 dados_raw_recebimentos.ipynb
-│   │   ├── 📄 dados_raw_recebimentos.py
-│   │   └── 📄 dados_transacoes_financeiras.ipynb
-│   ├── 📁 raw
-│   │   ├── 📁 areas
-│   │   │   └── 📄 areas.csv
-│   │   ├── 📁 categorias_contabeis
-│   │   │   └── 📄 categorias_contabeis.csv
-│   │   ├── 📁 fornecedores_clientes
-│   │   │   └── 📄 fornecedores_clientes.csv
-│   │   ├── 📁 funcionarios
-│   │   │   └── 📄 funcionarios.csv
-│   │   ├── 📁 pagamentos
-│   │   │   └── 📄 pagamentos.csv
-│   │   ├── 📁 recebimentos
-│   │   │   └── 📄 recebimentos.csv
-│   │   └── 📁 transacoes_financeiras
-│   │       ├── 📄 transacoes_2024_01_01.csv
-│   │       └── 📄 ... (24 arquivos mensais: 2024-01 a 2025-12)
-│   ├── 📁 refined (vazio — populado pelo ETL trusted→refined)
-│   └── 📁 trusted (vazio — populado pelo ETL raw→trusted)
-├── 📁 docker
-│   └── 📁 postgres
-│       └── 📁 data (omitido: volume)
-├── 📁 docs
-│   ├── 📁 db_docs
-│   │   ├── 📄 DataWarehouse_Documentacao.docx
-│   │   └── 📄 DataWarehouse_Documentacao.pdf
-│   ├── 📄 estrutura-pasta.txt      ← este arquivo
-│   ├── 📄 instrucoes_git.md
-│   └── 📄 instruções_docker
-├── 📁 etl
-│   ├── 📁 config
-│   │   └── 📄 etl_config.py
-│   ├── 📁 logs (gerado em execução)
-│   └── 📁 scripts
-│       ├── 📁 load_raw             ← carrega CSVs no PostgreSQL via COPY
-│       │   ├── 📄 banco.ipynb
-│       │   └── 📄 banco.py
-│       ├── 📁 raw_to_trusted       ← transforma raw → trusted (SCD Tipo 2)
-│       │   ├── 📄 00_moedas.py     ← dados de referência (BRL, USD, EUR)
-│       │   ├── 📄 01_areas.py
-│       │   └── 📄 02_categorias_contabeis.py
-│       ├── 📁 trusted_to_refined   ← transforma trusted → refined (Star Schema)
-│       │   └── 📄 00_dim_tempo.py  ← spine de datas 2023-2026
-│       └── 📁 refined_to_features (vazio — para feature engineering de ML)
-├── 📁 ml
-│   ├── 📁 evaluation (vazio)
-│   ├── 📁 models (vazio)
-│   ├── 📁 notebooks (vazio)
-│   ├── 📁 src (vazio)
-│   └── 📄 requirements.txt
-├── 📁 scripts
-│   └── 📄 run_notebooks.py         ← orquestra geração de dados + carga (usado pelo Docker)
-├── 📁 sql
-│   ├── 📁 ddl
-│   │   ├── 📄 00_create_schemas.sql
-│   │   ├── 📄 01_create_raw_tables.sql
-│   │   ├── 📄 02_create_trusted_tables.sql
-│   │   └── 📄 03_create_refined_tables.sql
-│   ├── 📁 dml
-│   │   └── 📄 00_insert.sql
-│   ├── 📁 queries (vazio)
-│   └── 📁 views (vazio)
-├── 📁 tests
-│   ├── 📄 teste.ipynb
-│   └── 📄 teste-mysql.yml
-├── 📄 .dockerignore
-├── 📄 .env.example
-├── 📄 .gitignore
-├── 📄 CONTRIBUTING.md
-├── 📄 docker-compose.yml
-├── 📄 README.md
-└── 📄 requirements.txt
+├── .git (omitido: estrutura interna)
+├── .venv (omitido: ambiente virtual local)
+├── data
+│   ├── exports
+│   ├── generators
+│   │   ├── dados_raw_areas.ipynb
+│   │   ├── dados_raw_areas.py
+│   │   ├── dados_raw_categorias_contabeis.ipynb
+│   │   ├── dados_raw_categorias_contabeis.py
+│   │   ├── dados_raw_fornecedores_clientes.ipynb
+│   │   ├── dados_raw_fornecedores_clientes.py
+│   │   ├── dados_raw_funcionarios.ipynb
+│   │   ├── dados_raw_funcionarios.py
+│   │   ├── dados_raw_pagamentos.ipynb
+│   │   ├── dados_raw_pagamentos.py
+│   │   ├── dados_raw_recebimentos.ipynb
+│   │   ├── dados_raw_recebimentos.py
+│   │   └── dados_transacoes_financeiras.ipynb
+│   ├── raw
+│   │   ├── areas
+│   │   │   └── areas.csv
+│   │   ├── categorias_contabeis
+│   │   │   └── categorias_contabeis.csv
+│   │   ├── fornecedores_clientes
+│   │   │   └── fornecedores_clientes.csv
+│   │   ├── funcionarios
+│   │   │   └── funcionarios.csv
+│   │   ├── pagamentos
+│   │   │   └── pagamentos.csv
+│   │   ├── recebimentos
+│   │   │   └── recebimentos.csv
+│   │   └── transacoes_financeiras
+│   │       └── transacoes_*.csv
+│   ├── refined
+│   └── trusted
+├── docs
+│   ├── db_docs
+│   │   ├── DataWarehouse_Documentacao.docx
+│   │   └── DataWarehouse_Documentacao.pdf
+│   ├── private
+│   │   └── aws_credentials.md
+│   ├── estrutura-pasta.txt
+│   └── instrucoes_git.md
+├── etl
+│   ├── config
+│   │   └── database.py
+│   └── scripts
+│       ├── load_raw
+│       │   ├── banco.py
+│       │   └── load.py
+│       └── raw_to_trusted
+│           ├── 01_areas.py
+│           └── 02_categorias_contabeis.py
+├── ml
+│   └── requirements.txt
+├── scripts
+│   └── run_notebooks.py
+├── sql
+│   ├── ddl
+│   │   ├── 00_create_schemas.sql
+│   │   ├── 01_create_raw_tables.sql
+│   │   ├── 02_create_trusted_tables.sql
+│   │   └── 03_create_refined_tables.sql
+│   ├── dml
+│   │   └── 00_insert.sql
+│   └── queries
+│       └── query.slq
+├── tests
+│   ├── teste.ipynb
+│   └── teste-mysql.yml
+├── .env.example
+├── .gitignore
+├── CONTRIBUTING.md
+├── import-ec2.py
+├── load.py
+├── README.md
+├── requirements.txt
+└── ROADMAP.md
+
+Observacoes:
+
+- O banco principal do projeto e um PostgreSQL no Amazon RDS.
+- A EC2 e usada como Bastion Host para SSH Tunnel quando o RDS esta em rede privada.
+- As camadas de dados seguem a arquitetura Medallion: RAW -> TRUSTED -> REFINED.
+- Arquivos locais sensiveis, como `.env`, credenciais AWS e chaves privadas, nao devem ser versionados.

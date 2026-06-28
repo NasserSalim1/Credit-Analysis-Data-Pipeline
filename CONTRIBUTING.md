@@ -1,162 +1,214 @@
-# Guia de contribuição — SCAP
+# Guia de contribuicao - SCAP
 
 ## Equipe
 
-| Nome   | Foco principal                     |
-|--------|------------------------------------|
-| Nasser | Engenharia de dados                |
-| Adam   | Ciência de dados                   |
+| Nome   | Foco principal      |
+|--------|---------------------|
+| Nasser | Engenharia de dados |
+| Adam   | Ciencia de dados    |
 
 ---
 
 ## 1. Regra de ouro
 
-A branch `main` está **sempre funcional**. Qualquer pessoa pode clonar o repositório, rodar `docker-compose up -d` e ter o projeto inteiro rodando. Nunca faça commit direto na `main`.
+A branch `main` deve permanecer funcional e consistente com a arquitetura atual do SCAP. Qualquer pessoa do time deve conseguir clonar o repositorio, configurar o ambiente Python, apontar as credenciais para o Amazon RDS PostgreSQL e executar os fluxos de desenvolvimento autorizados.
+
+Nunca faca commit direto na `main`.
 
 ---
 
-## 2. Fluxo de trabalho
+## 2. Arquitetura atual de desenvolvimento
 
-### 2.1 Criar uma feature branch
+O SCAP utiliza uma arquitetura de dados baseada em:
 
-Antes de começar qualquer trabalho novo, parta da main atualizada:
+- Amazon RDS PostgreSQL como banco principal.
+- Amazon EC2 como Bastion Host para acesso ao RDS privado via SSH Tunnel, quando necessario.
+- ETLs em Python.
+- Arquitetura Medallion: RAW -> TRUSTED -> REFINED.
+
+O acesso ao banco depende das credenciais corretas no `.env` e, em ambientes privados, de um tunel SSH ativo pela EC2.
+
+---
+
+## 3. Preparacao do ambiente
+
+### 3.1 Clonar o projeto
 
 ```bash
-# Ir para a main
+git clone <url-do-repositorio>
+cd TCC
+```
+
+### 3.2 Criar e ativar o ambiente virtual
+
+```bash
+python -m venv .venv
+
+# Windows PowerShell
+.\.venv\Scripts\Activate.ps1
+
+# Linux/macOS
+source .venv/bin/activate
+```
+
+### 3.3 Instalar dependencias
+
+```bash
+pip install -r requirements.txt
+```
+
+Se estiver trabalhando na camada de Machine Learning, instale tambem as dependencias especificas:
+
+```bash
+pip install -r ml/requirements.txt
+```
+
+### 3.4 Configurar variaveis de ambiente
+
+Crie um arquivo `.env` local a partir do template do projeto:
+
+```bash
+cp .env.example .env
+```
+
+No Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Preencha o `.env` com as credenciais do Amazon RDS PostgreSQL e demais variaveis usadas pelos ETLs.
+
+Regras importantes:
+
+- Nunca commitar `.env`.
+- Nunca commitar chaves privadas, credenciais AWS ou arquivos `.pem`.
+- Usar `.env.example` apenas como referencia de configuracao.
+
+---
+
+## 4. Conexao com o Amazon RDS PostgreSQL
+
+### 4.1 Acesso direto
+
+Quando sua rede tiver permissao para acessar o endpoint do RDS, configure o `.env` com o host do RDS, porta, usuario, senha e database.
+
+Exemplo de teste via `psql`:
+
+```bash
+psql -h <endpoint-rds> -p 5432 -U <usuario> -d <database>
+```
+
+### 4.2 Acesso via SSH Tunnel pela EC2
+
+Quando o RDS estiver em sub-rede privada, abra um tunel SSH pela EC2 Bastion Host:
+
+```bash
+ssh -i <chave.pem> -L 5432:<endpoint-rds>:5432 <usuario-ec2>@<ip-ou-dns-ec2>
+```
+
+Com o tunel ativo, a aplicacao local deve conectar usando:
+
+```text
+DB_HOST=localhost
+DB_PORT=5432
+```
+
+O tunel deve permanecer aberto enquanto os ETLs ou consultas estiverem acessando o banco.
+
+---
+
+## 5. Fluxo de trabalho
+
+### 5.1 Criar uma feature branch
+
+Antes de comecar qualquer trabalho novo, parta da `main` atualizada:
+
+```bash
 git checkout main
-
-# Puxar as atualizações do remote
 git pull origin main
-
-# Criar a feature branch
 git checkout -b feature/<camada>-<descricao>
 ```
 
-**Convenção de nomes para branches:**
+Convencao de nomes para branches:
 
-```
+```text
 feature/<camada>-<descricao>
 ```
 
 Exemplos:
+
 - `feature/etl-raw-ingestao`
 - `feature/sql-refined-views`
 - `feature/ml-feature-engineering`
 - `feature/docs-atualizar-readme`
 - `feature/fix-ddl-dim-moeda`
 
-### 2.2 Desenvolver e commitar
+### 5.2 Desenvolver e commitar
 
-Trabalhe na sua feature branch, commitando conforme avança:
+Trabalhe na sua feature branch, commitando conforme avanca:
 
 ```bash
-# Ver o que mudou
 git status
-
-# Adicionar arquivos específicos
 git add etl/scripts/raw_to_trusted/01_areas.py
-
-# Commitar com mensagem descritiva
-git commit -m "feat: implementa ingestão de áreas na camada raw"
-
-# Continuar desenvolvendo e commitando...
-git add etl/scripts/raw_to_trusted/02_categorias_contabeis.py
-git commit -m "feat: implementa ingestão de categorias contábeis"
+git commit -m "feat: implementa ingestao de areas na camada raw"
 ```
 
-### 2.3 Subir a branch pro remote
+### 5.3 Subir a branch para o remote
 
 ```bash
 git push origin feature/<camada>-<descricao>
 ```
 
-### 2.4 Atualizar sua branch antes do PR
+### 5.4 Atualizar sua branch antes do PR
 
-Se a main avançou enquanto você trabalhava (por exemplo, o outro membro do time mergeou algo), atualize sua branch:
+Se a `main` avancou enquanto voce trabalhava, atualize sua branch:
 
 ```bash
-# Voltar pra main e puxar atualizações
 git checkout main
 git pull origin main
-
-# Voltar pra sua branch
 git checkout feature/<camada>-<descricao>
-
-# Trazer as mudanças da main pra sua branch
 git merge main
 ```
 
-Se houver conflitos, o Git vai avisar. Resolva os conflitos no editor, depois:
+Se houver conflitos, resolva no editor e finalize:
 
 ```bash
-# Após resolver conflitos nos arquivos
 git add <arquivos-resolvidos>
 git commit -m "merge: resolve conflitos com main"
 git push origin feature/<camada>-<descricao>
 ```
 
-### 2.5 Abrir Pull Request
+### 5.5 Abrir Pull Request
 
-1. Vá ao GitHub
-2. Abra um PR de `feature/<camada>-<descricao>` → `main`
-3. Marque o outro membro do time como reviewer
-4. Aguarde aprovação
+1. Va ao GitHub.
+2. Abra um PR de `feature/<camada>-<descricao>` para `main`.
+3. Marque o outro membro do time como reviewer.
+4. Descreva o impacto nos dados, no banco e nos ETLs.
+5. Aguarde aprovacao.
 
-### 2.6 Mergear e limpar
+### 5.6 Mergear e limpar
 
-Após aprovação, mergear o PR no GitHub (botão "Merge pull request"). Depois, localmente:
+Apos aprovacao, mergear o PR no GitHub. Depois, localmente:
 
 ```bash
-# Voltar pra main e puxar o merge
 git checkout main
 git pull origin main
-
-# Deletar a feature branch local
 git branch -D feature/<camada>-<descricao>
 ```
 
-A branch remota pode ser deletada direto no GitHub após o merge.
-
 ---
 
-## 3. Trabalho em paralelo
+## 6. Releases e deploy
 
-Nasser e Adam podem trabalhar em feature branches simultâneas. O fluxo é:
-
-```
-main (commit A)
-  │
-  ├── feature/etl-raw-ingestao (Nasser)
-  │     ├── commit: feat: ingestão áreas
-  │     ├── commit: feat: ingestão categorias
-  │     └── PR → merge na main ✓        ← main agora tem commits A + B
-  │
-  └── feature/sql-refined-views (Adam)
-        ├── commit: feat: view saldos
-        ├── commit: feat: view receitas
-        ├── git merge main               ← Adam puxa o trabalho do Nasser
-        └── PR → merge na main ✓        ← main agora tem commits A + B + C
-```
-
-**Regra:** quem mergear por último deve atualizar a branch antes de abrir o PR (seção 2.4). Isso evita conflitos na main.
-
-**Dica:** combinem antes quem vai mexer em quê. Se cada um tocar arquivos diferentes, conflitos não acontecem.
-
----
-
-## 4. Releases e deploy
-
-Quando uma versão estiver pronta para o servidor, criamos uma **tag** na main:
+Quando uma versao estiver pronta para entrega, criamos uma tag na `main`:
 
 ```bash
-# Criar a tag
 git tag -a v0.1.0 -m "Pipeline RAW funcional"
-
-# Subir a tag pro remote
 git push origin v0.1.0
 ```
 
-O deploy no servidor é feito a partir da tag, nunca direto da branch.
+O deploy deve partir de uma tag versionada, nunca diretamente de uma feature branch.
 
 Para listar as tags existentes:
 
@@ -166,85 +218,66 @@ git tag -l
 
 ---
 
-## 5. Convenção de commits
+## 7. Convencao de commits
 
-Usamos prefixos para identificar o tipo de mudança:
-
-| Prefixo     | Quando usar                        | Exemplo                                          |
-|-------------|------------------------------------|--------------------------------------------------|
-| `feat:`     | Nova funcionalidade                | `feat: implementa ingestão de áreas na camada raw` |
-| `fix:`      | Correção de bug                    | `fix: corrige encoding do etl_config.py`          |
-| `chore:`    | Manutenção, limpeza, configs       | `chore: remove notebooks descartáveis`            |
-| `docs:`     | Documentação                       | `docs: atualiza README com checklist de status`   |
-| `refactor:` | Refatoração sem mudar comportamento| `refactor: extrai função de conexão do banco`     |
-| `test:`     | Testes                             | `test: adiciona teste de validação de áreas`      |
-| `merge:`    | Resolução de merge/conflitos       | `merge: resolve conflitos com main`               |
+| Prefixo     | Quando usar                         | Exemplo                                            |
+|-------------|-------------------------------------|----------------------------------------------------|
+| `feat:`     | Nova funcionalidade                 | `feat: implementa ingestao de areas na camada raw` |
+| `fix:`      | Correcao de bug                     | `fix: corrige encoding do etl_config.py`           |
+| `chore:`    | Manutencao, limpeza, configs        | `chore: remove notebooks descartaveis`             |
+| `docs:`     | Documentacao                        | `docs: atualiza guia de contribuicao`              |
+| `refactor:` | Refatoracao sem mudar comportamento | `refactor: extrai funcao de conexao do banco`      |
+| `test:`     | Testes                              | `test: adiciona teste de validacao de areas`       |
+| `merge:`    | Resolucao de merge/conflitos        | `merge: resolve conflitos com main`                |
 
 ---
 
-## 6. Estrutura do projeto
+## 8. Estrutura do projeto
 
-```
+```text
 project/
-├── data/raw/              # Dados brutos (CSVs) — camada Bronze
-├── data/trusted/          # Dados validados — camada Silver
-├── data/refined/          # Dados para ML — camada Gold
-├── etl/config/            # Configuração central do ETL
-├── etl/scripts/           # Scripts do pipeline (raw→trusted→refined)
-├── ml/                    # Machine Learning pipeline
-├── sql/ddl/               # CREATE TABLE (schemas e tabelas)
-├── sql/dml/               # Notebooks de geração de dados + inserts
-├── sql/views/             # Views e materialized views
-├── sql/queries/           # Queries analíticas
-├── docs/                  # Documentação
-└── tests/                 # Testes
+├── data/raw/              # Dados brutos - camada RAW
+├── data/trusted/          # Dados tratados - camada TRUSTED
+├── data/refined/          # Dados modelados para consumo - camada REFINED
+├── etl/config/            # Configuracao central dos ETLs
+├── etl/scripts/           # Scripts do pipeline Medallion
+├── ml/                    # Pipeline de Machine Learning
+├── sql/ddl/               # Schemas e tabelas
+├── sql/dml/               # Cargas auxiliares
+├── sql/queries/           # Queries analiticas
+├── docs/                  # Documentacao
+└── tests/                 # Testes e experimentos
 ```
 
 ---
 
-## 7. Comandos úteis do dia a dia
+## 9. Comandos uteis do dia a dia
 
 ```bash
-# Ver em qual branch você está
 git branch
-
-# Ver todas as branches (locais e remotas)
 git branch -a
-
-# Ver o histórico resumido
 git log --oneline -10
-
-# Ver o que mudou antes de commitar
 git diff
-
-# Ver arquivos modificados
 git status
-
-# Desfazer mudanças em um arquivo (antes de commitar)
 git restore <arquivo>
-
-# Desfazer o último commit (mantém as mudanças no disco)
 git reset --soft HEAD~1
+```
 
-# Subir o Docker do zero (testa se tudo funciona)
-docker-compose down -v
-docker-compose up -d
+Teste rapido de conexao com o banco:
 
-# Verificar se o Postgres está healthy
-docker ps
-
-# Acessar o banco
-docker exec -it tcc-postgres-dw psql -U admin -d financial_dw
+```bash
+psql -h <host> -p <porta> -U <usuario> -d <database>
 ```
 
 ---
 
-## 8. Regras importantes
+## 10. Regras importantes
 
-1. **Nunca commitar o `.env`** — use `.env.example` como template
-2. **Nunca commitar volumes do Docker** (`docker/postgres/data/`)
-3. **Sempre testar localmente antes de abrir PR** — `docker-compose down -v && docker-compose up -d`
-4. **Sempre partir da main atualizada** ao criar feature branch
-5. **Sempre atualizar a branch** com `git merge main` antes de abrir PR
-6. **Deletar feature branches** após o merge — não acumular branches antigas
-7. **Um PR por feature** — não misturar ETL com SQL com ML no mesmo PR
+1. Nunca commitar o `.env`; use `.env.example` como template.
+2. Nunca commitar credenciais AWS, chaves privadas ou arquivos `.pem`.
+3. Sempre validar a conexao com o Amazon RDS antes de executar ETLs.
+4. Usar SSH Tunnel via EC2 Bastion Host quando o RDS nao estiver acessivel diretamente.
+5. Sempre partir da `main` atualizada ao criar feature branch.
+6. Sempre atualizar a branch com `git merge main` antes de abrir PR.
+7. Deletar feature branches apos o merge.
+8. Manter um PR por feature, sem misturar ETL, SQL, ML e documentacao sem necessidade.
