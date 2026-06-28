@@ -198,3 +198,7 @@ docker/postgres/data/
 data/raw
 data/refined
 data/trusted
+
+private/
+*.local.md
+credentials*
