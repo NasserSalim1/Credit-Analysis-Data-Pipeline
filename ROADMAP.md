@@ -30,11 +30,11 @@ Ultima atualizacao: 28/06/2026
   - 21.500 pagamentos
   - 18.200 recebimentos
 - [x] Reorganizacao de pastas (generators, load_raw, ETL por camada)
-- [x] ETL config centralizado (conexao, batch_id, logger)
 
 ## Fase 2 - Pipeline ETL
 
-- [ ] **Carga RAW (load_raw):** refatorar `banco.py` como script ETL robusto - usar `etl_config.py`, logging, batch_id, idempotencia, tratamento de erros.
+- [ ] **ETL config centralizado:** criar `etl/config/` (conexao, batch_id, logger) - hoje a pasta existe mas esta vazia (`.gitkeep`).
+- [ ] **Carga RAW (load_raw):** refatorar `load_raw_csv_to_postgres.py` como script ETL robusto - usar o config centralizado, logging, batch_id, idempotencia, tratamento de erros.
 - [ ] **RAW -> TRUSTED (raw_to_trusted):** implementar scripts por entidade:
   - [ ] 01_areas.py (vazio hoje)
   - [ ] 02_categorias_contabeis.py (vazio hoje)
@@ -62,10 +62,10 @@ Ultima atualizacao: 28/06/2026
 
 ## Fase 4 - Entrega e apresentacao
 
-- [ ] **Dashboard Streamlit:** visualizacao dos resultados, metricas do modelo, exploracao dos dados.
+- [ ] **Dashboard Power BI:** visualizacao dos resultados, metricas do modelo, exploracao dos dados.
 - [ ] **Testes:** pytest para validacoes de dados e testes de integracao do pipeline.
 - [ ] **CI/CD:** GitHub Actions para rodar testes automaticamente nos PRs.
-- [ ] **Documentacao final:** atualizar README, docs/estrutura-pasta.txt, documentacao do TCC.
+- [ ] **Documentacao final:** atualizar README, docs/architecture/project_structure.txt, documentacao do TCC.
 - [ ] **Deploy no servidor:** criar tag de release, publicar a versao e documentar processo.
 
 ---
@@ -78,5 +78,5 @@ Ultima atualizacao: 28/06/2026
 | Modelagem dimensional (trusted_to_refined) | Adam |
 | Feature engineering | Ambos |
 | Modelo de ML | Adam |
-| Dashboard Streamlit | Nasser |
+| Dashboard Power BI | Nasser |
 | Testes e CI/CD | Ambos |

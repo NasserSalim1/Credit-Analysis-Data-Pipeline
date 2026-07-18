@@ -11,77 +11,72 @@ Desenvolver uma solução de dados completa para análise de risco de crédito, 
 2. **Armazenamento:** Data Warehouse em PostgreSQL com modelagem dimensional (Medalha)
 3. **Processamento:** Pipeline de ETL em Python (Pandas, SQLAlchemy)
 4. **ML Pipeline:** Feature engineering, treinamento e validação (TensorFlow/Keras)
-5. **Visualização:** Dashboard analítico (Streamlit - planejado)
+5. **Visualização:** Dashboard analítico (Power BI - planejado)
 
-## ⚡ Quick Start com GitHub Codespaces
+## ⚡ Quick Start
 
-### Opção 1: Criar Codespace
-1. Abra https://github.com/[seu-usuario]/[seu-repo]
-2. Clique em **Code** → **Codespaces** → **Create codespace on main**
-3. Espere 3-5 minutos para configuração automática
-4. No terminal, inicie os containers:
-   ```bash
-   docker-compose up -d
-   ```
-
-### Opção 2: Desenvolvimento Local
 Pré-requisitos:
 - Python 3.11+
-- Docker e Docker Compose
-- PostgreSQL Client (opcional)
+- Acesso ao Amazon RDS PostgreSQL (direto ou via túnel SSH pela EC2 Bastion Host — veja [CONTRIBUTING.md](CONTRIBUTING.md))
 
 Setup:
 ```bash
 # Clone o repositório
-git clone [seu-repo-url]
-cd TCC
+git clone https://github.com/SCAP-Project/SCAP.git
+cd SCAP
+
+# Crie e ative o ambiente virtual
+python -m venv .venv
+# Windows PowerShell: .\.venv\Scripts\Activate.ps1
+# Linux/macOS: source .venv/bin/activate
 
 # Copie o arquivo de ambiente
 cp .env.example .env
+# Preencha o .env com as credenciais do RDS
 
 # Instale as dependências
 pip install -r requirements.txt
+pip install -r requirements-dev.txt
 pip install -r ml/requirements.txt
-
-# Inicie os containers
-docker-compose up -d
 ```
 
 ## 📁 Estrutura do Projeto
 
-Veja [docs/estrutura-pasta.txt](docs/estrutura-pasta.txt) para detalhes completos.
+Veja [docs/architecture/project_structure.txt](docs/architecture/project_structure.txt) para detalhes completos.
 
 Resumo das camadas:
 ```
-project/
-├── data/               # Medalha Architecture
+SCAP/
+├── data/               # Medalha Architecture (gitignored, dados locais)
 │   ├── raw/           # Bronze: Dados brutos
 │   ├── trusted/       # Silver: Dados validados
 │   └── refined/       # Gold: Dados para ML
-├── etl/                # Pipeline ETL
+├── etl/                # Pipeline ETL (data_generation, load_raw, raw_to_trusted, trusted_to_refined)
 ├── ml/                 # Machine Learning
-├── sql/                # Scripts SQL
-└── docs/               # Documentação
+├── dashboard/          # Dashboard Power BI
+├── sql/                # Scripts SQL (ddl, dml, queries)
+└── docs/               # Documentação (architecture, aws, database, development)
 ```
 
 ## 🛠️ Stack Tecnológica
 - **Linguagens:** Python 3.11, SQL
-- **Banco de Dados:** PostgreSQL 15
+- **Banco de Dados:** Amazon RDS PostgreSQL 15
 - **Data Processing:** Pandas, NumPy, SQLAlchemy
 - **Machine Learning:** TensorFlow/Keras, Scikit-learn
-- **Containerização:** Docker, Docker Compose
-- **Desenvolvimento:** Jupyter, GitHub Codespaces
+- **Infraestrutura:** Amazon RDS, Amazon EC2 (Bastion Host)
+- **Visualização:** Power BI
+- **Desenvolvimento:** Jupyter
 - **Versionamento:** Git, GitHub
 
 ## 📊 Status Atual
 - [x] Definição da arquitetura e modelagem dimensional do DW
-- [x] Configuração do ambiente (Docker, Codespaces)
+- [x] Migração do ambiente para Amazon RDS PostgreSQL + EC2 Bastion Host
 - [x] Reorganização da estrutura do projeto
 - [x] Criação do schema do banco de dados (DDL)
 - [x] Geração de dados sintéticos (24 meses de transações)
-- [ ] Implementação dos scripts ETL
+- [ ] Implementação dos scripts ETL (raw → trusted → refined)
 - [ ] Desenvolvimento do modelo de Rede Neural
-- [ ] Criação do dashboard com Streamlit
+- [ ] Criação do dashboard com Power BI
 - [ ] Testes e CI/CD
 
 ## 🔧 Configuração Rápida
@@ -93,20 +88,18 @@ cp .env.example .env
 # Instalar dependências
 pip install -r requirements.txt
 
-# Iniciar containers
-docker-compose up -d
-
-# Acessar banco de dados
-psql -U postgres -h localhost -d financial_dw
+# Acessar banco de dados (direto ou via túnel SSH pela EC2 — ver CONTRIBUTING.md)
+psql -h <endpoint-rds> -p 5432 -U <usuario> -d <database>
 
 # Jupyter
 jupyter lab
 ```
 
 ## 📚 Documentação Adicional
-- [Estrutura do Projeto](docs/estrutura-pasta.txt)
-- [Guia de Reorganização](docs/REORGANIZACAO.md)
-- [Data Warehouse Docs](docs/db_docs/)
+- [Estrutura do Projeto](docs/architecture/project_structure.txt)
+- [Guia de Contribuição](CONTRIBUTING.md)
+- [Roadmap](ROADMAP.md)
+- [Data Warehouse Docs](docs/database/)
 
 ## 🚀 Próximos Passos
 1. Finalizar a camada de ingestão de dados
@@ -117,5 +110,5 @@ jupyter lab
 ## 📖 Referências
 - [Kimball Group - Data Warehouse Toolkit](https://www.kimballgroup.com/)
 - [Medallion Architecture](https://www.databricks.com/blog/2022/06/24/introduction-medallion-architecture.html)
-- [GitHub Codespaces](https://docs.github.com/en/codespaces)
+- [Amazon RDS Docs](https://docs.aws.amazon.com/rds/)
 - [PostgreSQL Docs](https://www.postgresql.org/docs/)

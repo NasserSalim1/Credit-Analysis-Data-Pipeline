@@ -150,7 +150,7 @@ Trabalhe na sua feature branch, commitando conforme avanca:
 
 ```bash
 git status
-git add etl/scripts/raw_to_trusted/01_areas.py
+git add etl/raw_to_trusted/01_areas.py
 git commit -m "feat: implementa ingestao de areas na camada raw"
 ```
 
@@ -235,19 +235,26 @@ git tag -l
 ## 8. Estrutura do projeto
 
 ```text
-project/
-├── data/raw/              # Dados brutos - camada RAW
-├── data/trusted/          # Dados tratados - camada TRUSTED
-├── data/refined/          # Dados modelados para consumo - camada REFINED
-├── etl/config/            # Configuracao central dos ETLs
-├── etl/scripts/           # Scripts do pipeline Medallion
-├── ml/                    # Pipeline de Machine Learning
-├── sql/ddl/               # Schemas e tabelas
-├── sql/dml/               # Cargas auxiliares
-├── sql/queries/           # Queries analiticas
-├── docs/                  # Documentacao
-└── tests/                 # Testes e experimentos
+SCAP/
+├── data/raw/                    # Dados brutos - camada RAW (gitignored)
+├── data/trusted/                # Dados tratados - camada TRUSTED (gitignored)
+├── data/refined/                # Dados modelados para consumo - camada REFINED (gitignored)
+├── etl/config/                  # Configuracao central dos ETLs
+├── etl/data_generation/         # Geracao de dados sinteticos
+├── etl/load_raw/                # Carga RAW (CSV -> Postgres)
+├── etl/raw_to_trusted/          # Transformacao RAW -> TRUSTED
+├── etl/trusted_to_refined/      # Transformacao TRUSTED -> REFINED
+├── etl/utils/                   # Utilitarios compartilhados do ETL
+├── dashboard/powerbi/           # Dashboard Power BI
+├── ml/                          # Pipeline de Machine Learning
+├── sql/ddl/                     # Schemas e tabelas
+├── sql/dml/                     # Cargas auxiliares
+├── sql/queries/                 # Queries analiticas
+├── docs/                        # Documentacao (architecture, aws, database, development)
+└── tests/                       # Testes (unit, integration, data_quality)
 ```
+
+Veja [docs/architecture/project_structure.txt](docs/architecture/project_structure.txt) para a arvore completa e atualizada.
 
 ---
 
