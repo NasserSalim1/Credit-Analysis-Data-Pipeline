@@ -20,7 +20,7 @@ pip-delete-this-directory.txt
 venv/
 env/
 ENV/
-env.bak/
+envbak/
 venv.bak/
 
 # Environment and secrets
@@ -69,6 +69,13 @@ data/raw/
 data/trusted/
 data/refined/
 data/exports/
+
+# Future orchestration and analytics artifacts
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+orchestration/airflow/logs/
+orchestration/airflow/airflow.db
 
 # Temporary files
 tmp/
