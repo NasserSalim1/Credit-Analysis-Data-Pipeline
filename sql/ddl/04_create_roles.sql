@@ -26,8 +26,10 @@ BEGIN
 END
 $$;
 
--- Permite ao master definir "default privileges" em nome dos grupos (secao 6).
-GRANT eng_dados, app_etl TO CURRENT_USER;
+-- O master precisa ser membro dos grupos para: (a) definir "default privileges"
+-- em nome deles (secao 6) e (b) criar o schema ml com AUTHORIZATION cientista_dados
+-- (secao 4) -- criar objeto "em nome de" um role exige poder dar SET ROLE nele.
+GRANT eng_dados, cientista_dados, app_etl TO CURRENT_USER;
 
 -- ========== 2. LOGINS DE SERVICO (nao-humanos) ==========
 -- Apenas os servicos sao criados aqui; os usuarios pessoais ja existem (secao 3).
