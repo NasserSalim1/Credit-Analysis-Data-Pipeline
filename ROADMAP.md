@@ -1,75 +1,82 @@
-# Roadmap — SCAP (Sistema de Crédito e Anomalias Preditivas)
+# Roadmap - SCAP (Sistema de Credito e Anomalias Preditivas)
 
-Última atualização: 21/03/2026
+Ultima atualizacao: 28/06/2026
 
 ---
 
-## Concluído
+## Infraestrutura atual
 
-- [x] Consolidação de branches (DEV + HML → main única)
-- [x] Fluxo Git definido (feature branches, PRs, convenção de commits)
+- Amazon RDS PostgreSQL como banco principal.
+- Amazon EC2 como Bastion Host para acesso ao RDS privado via SSH Tunnel, quando necessario.
+- PostgreSQL como tecnologia relacional da plataforma de dados.
+
+---
+
+## Concluido
+
+- [x] Consolidacao de branches (DEV + HML -> main unica)
+- [x] Fluxo Git definido (feature branches, PRs, convencao de commits)
 - [x] CONTRIBUTING.md e .gitattributes
-- [x] Docker Compose funcional (PostgreSQL 15 + Python 3.11)
 - [x] DDL completo: 3 schemas (raw, trusted, refined)
   - raw: 7 tabelas
   - trusted: 8 tabelas (SCD Tipo 2)
-  - refined: 6 dimensões + 4 fatos (Star Schema)
-- [x] Dados sintéticos gerados (seed=42, reprodutíveis)
-  - 40k+ transações financeiras (24 meses)
+  - refined: 6 dimensoes + 4 fatos (Star Schema)
+- [x] Dados sinteticos gerados (seed=42, reprodutiveis)
+  - 40k+ transacoes financeiras (24 meses)
   - 250 fornecedores/clientes
-  - 150 funcionários
-  - 40 categorias contábeis
-  - 20 áreas
+  - 150 funcionarios
+  - 40 categorias contabeis
+  - 20 areas
   - 21.500 pagamentos
   - 18.200 recebimentos
-- [x] Reorganização de pastas (generators, load_raw, ETL por camada)
-- [x] ETL config centralizado (conexão, batch_id, logger)
+- [x] Reorganizacao de pastas (generators, load_raw, ETL por camada)
 
-## Fase 2 — Pipeline ETL
+## Fase 2 - Pipeline ETL
 
-- [ ] **Carga RAW (load_raw):** refatorar `banco.py` como script ETL robusto — usar `etl_config.py`, logging, batch_id, idempotência, tratamento de erros.
-- [ ] **RAW → TRUSTED (raw_to_trusted):** implementar scripts por entidade:
-  - [ ] 01_areas.py (vazio hoje)
-  - [ ] 02_categorias_contabeis.py (vazio hoje)
+- [ ] **ETL config centralizado:** criar `etl/config/` (conexao, batch_id, logger) - hoje a pasta existe mas esta vazia (`.gitkeep`).
+- [ ] **Carga RAW (load_raw):** refatorar `load_raw_csv_to_postgres.py` como script ETL robusto - usar o config centralizado, logging, batch_id, idempotencia, tratamento de erros.
+- [ ] **RAW -> TRUSTED (raw_to_trusted):** implementar scripts por entidade:
+  - [ ] 01_areas.py
+  - [ ] 02_categorias_contabeis.py
   - [ ] 03_fornecedores_clientes.py
   - [ ] 04_funcionarios.py
   - [ ] 05_transacoes_financeiras.py
   - [ ] 06_pagamentos.py
   - [ ] 07_recebimentos.py
-  - Cada script deve: validar tipos, tratar nulos, padronizar, aplicar SCD Tipo 2 onde necessário, logar resultados.
-- [ ] **Popular `trusted.moedas`:** script para inserir dados de referência (BRL, USD, EUR).
-- [ ] **Popular `refined.dim_tempo`:** script para gerar spine de datas 2023-2026 (dia da semana, mês, trimestre, ano fiscal, feriados).
-- [ ] **TRUSTED → REFINED (trusted_to_refined):** popular dimensões a partir de trusted, depois popular fatos com chaves surrogate.
+  - Cada script deve: validar tipos, tratar nulos, padronizar, aplicar SCD Tipo 2 onde necessario, logar resultados.
+- [ ] **Popular `trusted.moedas`:** script para inserir dados de referencia (BRL, USD, EUR).
+- [ ] **Popular `refined.dim_tempo`:** script para gerar spine de datas 2023-2026 (dia da semana, mes, trimestre, ano fiscal, feriados).
+- [ ] **TRUSTED -> REFINED (trusted_to_refined):** popular dimensoes a partir de trusted, depois popular fatos com chaves surrogate.
 
 ---
 
-## Fase 3 — Machine Learning
+## Fase 3 - Machine Learning
 
-- [ ] **Feature engineering:** agregações por cliente/fornecedor, médias móveis, desvios, frequência de transações, padrões temporais.
-- [ ] **Definição do target:** definir o que é "anomalia" e "risco de crédito" no contexto dos dados sintéticos.
-- [ ] **Baseline:** modelo simples (Isolation Forest ou Random Forest) como referência de performance.
-- [ ] **Modelo de rede neural:** TensorFlow/Keras — Autoencoder para detecção de anomalias.
-- [ ] **Validação:** split temporal (não aleatório), métricas (precision, recall, F1, AUC-ROC), análise de threshold.
+- [ ] **Feature engineering:** agregacoes por cliente/fornecedor, medias moveis, desvios, frequencia de transacoes, padroes temporais.
+- [ ] **Definicao do target:** definir o que e "anomalia" e "risco de credito" no contexto dos dados sinteticos.
+- [ ] **Baseline:** modelo simples (Isolation Forest ou Random Forest) como referencia de performance.
+- [ ] **Modelo de rede neural:** TensorFlow/Keras - Autoencoder para deteccao de anomalias.
+- [ ] **Validacao:** split temporal (nao aleatorio), metricas (precision, recall, F1, AUC-ROC), analise de threshold.
 
 ---
 
-## Fase 4 — Entrega e apresentação
+## Fase 4 - Entrega e apresentacao
 
-- [ ] **Dashboard Streamlit:** visualização dos resultados, métricas do modelo, exploração dos dados.
-- [ ] **Testes:** pytest para validações de dados e testes de integração do pipeline.
+- [ ] **Dashboard Power BI:** visualizacao dos resultados, metricas do modelo, exploracao dos dados.
+- [ ] **Testes:** pytest para validacoes de dados e testes de integracao do pipeline.
 - [ ] **CI/CD:** GitHub Actions para rodar testes automaticamente nos PRs.
-- [ ] **Documentação final:** atualizar README, docs/estrutura-pasta.txt, documentação do TCC.
-- [ ] **Deploy no servidor:** subir Docker, criar tag de release, documentar processo.
+- [ ] **Documentacao final:** atualizar README, docs/architecture/project_structure.txt, documentacao do TCC.
+- [ ] **Deploy no servidor:** criar tag de release, publicar a versao e documentar processo.
 
 ---
 
-## Divisão sugerida de trabalho
+## Divisao sugerida de trabalho
 
-| Área | Responsável principal |
-|------|----------------------|
+| Area | Responsavel principal |
+|------|-----------------------|
 | Pipeline ETL (load_raw, raw_to_trusted) | Nasser |
 | Modelagem dimensional (trusted_to_refined) | Adam |
 | Feature engineering | Ambos |
 | Modelo de ML | Adam |
-| Dashboard Streamlit | Nasser |
+| Dashboard Power BI | Nasser |
 | Testes e CI/CD | Ambos |

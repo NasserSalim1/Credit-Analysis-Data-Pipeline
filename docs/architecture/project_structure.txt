@@ -1,0 +1,61 @@
+SCAP/
+├── .github
+│   └── PULL_REQUEST_TEMPLATE.md
+├── dashboard
+│   └── powerbi
+├── data
+│   ├── exports
+│   ├── raw
+│   ├── refined
+│   └── trusted
+├── dbt
+├── docs
+│   ├── architecture
+│   │   └── project_structure.txt
+│   ├── aws
+│   │   └── infraestrutura_aws.md
+│   ├── database
+│   │   ├── DataWarehouse_Documentacao.docx
+│   │   └── DataWarehouse_Documentacao.pdf
+│   ├── development
+│   │   └── git_commands.md
+│   └── private
+├── etl
+│   ├── config
+│   ├── data_generation
+│   │   └── generators
+│   ├── load_raw
+│   │   └── load_raw_csv_to_postgres.py
+│   ├── raw_to_trusted
+│   ├── trusted_to_refined
+│   └── utils
+├── ml
+│   └── requirements.txt
+├── orchestration
+│   └── airflow
+│       └── dags
+├── sql
+│   ├── ddl
+│   ├── dml
+│   └── queries
+├── tests
+│   ├── data_quality
+│   ├── integration
+│   └── unit
+├── .env.example
+├── .gitattributes
+├── .gitignore
+├── CONTRIBUTING.md
+├── README.md
+├── ROADMAP.md
+├── requirements-dev.txt
+└── requirements.txt
+
+Observacoes:
+
+- `data/` deve armazenar dados e artefatos de dados, nao codigo Python.
+- `etl/data_generation/` concentra os scripts e notebooks que geram CSVs sinteticos.
+- `etl/load_raw/`, `etl/raw_to_trusted/` e `etl/trusted_to_refined/` representam as etapas Medallion.
+- `docs/architecture/`, `docs/aws/`, `docs/database/` e `docs/development/` separam documentacao por dominio.
+- `orchestration/airflow/` e `dbt/` ficam reservados para evolucao futura, sem implementacao nesta sprint.
+- `dashboard/powerbi/` fica reservado para arquivos e documentacao do Power BI.
