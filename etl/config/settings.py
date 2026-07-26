@@ -43,9 +43,6 @@ class Settings:
 
     log_level: str = field(default_factory=lambda: os.getenv("LOG_LEVEL", "INFO"))
 
-    # Identifica a origem dos dados na camada RAW (colunas source_system/entity).
-    source_system: str = field(default_factory=lambda: os.getenv("SOURCE_SYSTEM", "synthetic_generator"))
-
     @property
     def database_url(self) -> str:
         """URL SQLAlchemy (driver psycopg2) para o RDS PostgreSQL."""

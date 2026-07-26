@@ -1,256 +1,111 @@
-#!/usr/bin/env python
-# coding: utf-8
+"""Carga da camada RAW: CSVs locais -> tabelas raw.* no RDS PostgreSQL.
+
+Le os CSVs gerados em data/raw/<entidade>/ e carrega em raw.<entidade> via
+COPY ... FROM STDIN (client-side), compativel com o Amazon RDS (o RDS nao
+enxerga o filesystem local, entao COPY FROM '<caminho>' server-side nao
+funciona).
+
+Os CSVs ja sao gerados com TODAS as colunas da tabela, inclusive os metadados
+de ingestao (ingestion_id, ingestion_ts, source_system, source_entity,
+row_seq, raw_row_hash). Portanto a carga e uma copia direta, mapeada pelo
+cabecalho do CSV (independente da ordem das colunas na tabela).
+
+Uso:
+    python -m etl.load_raw.load_raw_csv_to_postgres              # trunca e recarrega
+    python -m etl.load_raw.load_raw_csv_to_postgres --no-truncate  # apenas anexa
+"""
+
+from __future__ import annotations
+
+import argparse
+import csv
+from pathlib import Path
+
+from etl.config import get_engine, get_logger, settings
+
+log = get_logger(__name__)
+
+# Entidades da camada RAW. Para cada uma:
+#   CSVs em  data/raw/<entidade>/*.csv   ->   tabela  raw.<entidade>
+# A ordem respeita dependencias logicas (dimensoes antes das transacoes).
+ENTIDADES = [
+    "areas",
+    "categorias_contabeis",
+    "fornecedores_clientes",
+    "funcionarios",
+    "transacoes_financeiras",
+    "pagamentos",
+    "recebimentos",
+]
+
+
+def _csv_files(entidade: str) -> list[Path]:
+    """Retorna os CSVs de uma entidade (a pasta pode ter varios, ex.: mensais)."""
+    pasta = settings.data_raw_dir / entidade
+    if not pasta.is_dir():
+        log.warning("Pasta inexistente: %s -- entidade '%s' ignorada", pasta, entidade)
+        return []
+    arquivos = sorted(pasta.glob("*.csv"))
+    if not arquivos:
+        log.warning("Nenhum CSV em %s -- entidade '%s' ignorada", pasta, entidade)
+    return arquivos
+
+
+def _colunas(arquivo: Path) -> list[str]:
+    """Le o cabecalho do CSV para montar a lista de colunas do COPY."""
+    with arquivo.open("r", encoding="utf-8", newline="") as f:
+        return next(csv.reader(f))
+
+
+def carregar_entidade(raw_conn, entidade: str, truncate: bool) -> int:
+    """Carrega todos os CSVs de uma entidade em raw.<entidade>. Retorna linhas inseridas."""
+    tabela = f"raw.{entidade}"
+    arquivos = _csv_files(entidade)
+    if not arquivos:
+        return 0
+
+    total = 0
+    with raw_conn.cursor() as cur:
+        if truncate:
+            log.info("TRUNCATE %s", tabela)
+            cur.execute(f"TRUNCATE TABLE {tabela};")
+
+        for arquivo in arquivos:
+            colunas = ", ".join(f'"{c}"' for c in _colunas(arquivo))
+            copy_sql = (
+                f"COPY {tabela} ({colunas}) FROM STDIN WITH (FORMAT csv, HEADER true)"
+            )
+            with arquivo.open("r", encoding="utf-8") as f:
+                cur.copy_expert(copy_sql, f)
+            log.info("  %-28s -> %s (%d linhas)", arquivo.name, tabela, cur.rowcount)
+            total += cur.rowcount
+
+    return total
+
+
+def main(truncate: bool = True) -> None:
+    log.info("Carga RAW iniciada (banco '%s', truncate=%s)", settings.db_name, truncate)
+    raw_conn = get_engine().raw_connection()
+    try:
+        total_geral = sum(
+            carregar_entidade(raw_conn, entidade, truncate) for entidade in ENTIDADES
+        )
+        raw_conn.commit()
+        log.info("Carga RAW concluida: %d linhas no total", total_geral)
+    except Exception:
+        raw_conn.rollback()
+        log.exception("Falha na carga RAW -- rollback aplicado, nada foi persistido")
+        raise
+    finally:
+        raw_conn.close()
+
 
-# In[1]:
-
-
-import os
-import psycopg2
-from dotenv import load_dotenv
-import pandas as pd
-
-
-# In[2]:
-
-
-load_dotenv()
-
-
-# In[3]:
-
-
-# Pega as variáveis
-DB_USER = os.getenv("DB_USER")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_HOST = os.getenv("DB_HOST")
-DB_NAME = os.getenv("DB_NAME")
-DB_PORT = os.getenv("DB_PORT")
-
-# Conecta
-conn = psycopg2.connect(
-    host=DB_HOST,
-    database=DB_NAME,
-    user=DB_USER,
-    password=DB_PASSWORD,
-    port=DB_PORT
-)
-
-cursor = conn.cursor()
-cursor.execute("SELECT version();")
-print(cursor.fetchone())
-
-
-
-# In[4]:
-
-
-query = "SELECT * FROM raw.transacoes_financeiras;"
-
-df = pd.read_sql(query, conn)
-
-df.head()
-
-
-# In[5]:
-
-
-# pasta relativa ao workspace (não comece com barra!)
-workspace = os.path.abspath(os.path.join(os.getcwd(), "..", "..", ".."))
-pasta = os.path.join(workspace, "data", "raw", "transacoes_financeiras")
-
-caminhos = [os.path.join(pasta, nome) for nome in os.listdir(pasta)]
-arquivos = [arq for arq in caminhos if os.path.isfile(arq)]
-csv_files = [arq for arq in arquivos if arq.lower().endswith(".csv")]
-count = len(csv_files)
-
-print("CSV files found:", count)
-
-for path in csv_files:
-    nome_arquivo = os.path.basename(path)
-    path_container = f"/data/raw/transacoes_financeiras/{nome_arquivo}"
-
-    query = f"""
-    COPY raw.transacoes_financeiras
-    FROM '{path_container}'
-    DELIMITER ','
-    CSV HEADER;
-    """
-    cursor.execute(query)
-
-conn.commit()
-print("All files copied.")
-
-
-# In[6]:
-
-
-workspace = os.path.abspath(os.path.join(os.getcwd(), "..", "..", ".."))
-pasta = os.path.join(workspace, "data", "raw", "areas")
-
-caminhos = [os.path.join(pasta, nome) for nome in os.listdir(pasta)]
-arquivos = [arq for arq in caminhos if os.path.isfile(arq)]
-csv_files = [arq for arq in arquivos if arq.lower().endswith(".csv")]
-count = len(csv_files)
-
-print("CSV files found:", count)
-
-for path in csv_files:
-    nome_arquivo = os.path.basename(path)
-    path_container = f"/data/raw/areas/{nome_arquivo}"
-
-    query = f"""
-    COPY raw.areas
-    FROM '{path_container}'
-    DELIMITER ','
-    CSV HEADER;
-    """
-    cursor.execute(query)
-
-conn.commit()
-print("All files copied.")
-
-
-# In[7]:
-
-
-workspace = os.path.abspath(os.path.join(os.getcwd(), "..", "..", ".."))
-pasta = os.path.join(workspace, "data", "raw", "categorias_contabeis")
-
-caminhos = [os.path.join(pasta, nome) for nome in os.listdir(pasta)]
-arquivos = [arq for arq in caminhos if os.path.isfile(arq)]
-csv_files = [arq for arq in arquivos if arq.lower().endswith(".csv")]
-count = len(csv_files)
-
-print("CSV files found:", count)
-
-for path in csv_files:
-    nome_arquivo = os.path.basename(path)
-    path_container = f"/data/raw/categorias_contabeis/{nome_arquivo}"
-
-    query = f"""
-    COPY raw.categorias_contabeis
-    FROM '{path_container}'
-    DELIMITER ','
-    CSV HEADER;
-    """
-    cursor.execute(query)
-
-conn.commit()
-print("All files copied.")
-
-
-# In[8]:
-
-
-workspace = os.path.abspath(os.path.join(os.getcwd(), "..", "..", ".."))
-pasta = os.path.join(workspace, "data", "raw", "fornecedores_clientes")
-
-caminhos = [os.path.join(pasta, nome) for nome in os.listdir(pasta)]
-arquivos = [arq for arq in caminhos if os.path.isfile(arq)]
-csv_files = [arq for arq in arquivos if arq.lower().endswith(".csv")]
-count = len(csv_files)
-
-print("CSV files found:", count)
-
-for path in csv_files:
-    nome_arquivo = os.path.basename(path)
-    path_container = f"/data/raw/fornecedores_clientes/{nome_arquivo}"
-
-    query = f"""
-    COPY raw.fornecedores_clientes
-    FROM '{path_container}'
-    DELIMITER ','
-    CSV HEADER;
-    """
-    cursor.execute(query)
-
-conn.commit()
-print("All files copied.")
-
-
-# In[9]:
-
-
-workspace = os.path.abspath(os.path.join(os.getcwd(), "..", "..", ".."))
-pasta = os.path.join(workspace, "data", "raw", "funcionarios")
-
-caminhos = [os.path.join(pasta, nome) for nome in os.listdir(pasta)]
-arquivos = [arq for arq in caminhos if os.path.isfile(arq)]
-csv_files = [arq for arq in arquivos if arq.lower().endswith(".csv")]
-count = len(csv_files)
-
-print("CSV files found:", count)
-
-for path in csv_files:
-    nome_arquivo = os.path.basename(path)
-    path_container = f"/data/raw/funcionarios/{nome_arquivo}"
-
-    query = f"""
-    COPY raw.funcionarios
-    FROM '{path_container}'
-    DELIMITER ','
-    CSV HEADER;
-    """
-    cursor.execute(query)
-
-conn.commit()
-print("All files copied.")
-
-
-# In[10]:
-
-
-workspace = os.path.abspath(os.path.join(os.getcwd(), "..", "..", ".."))
-pasta = os.path.join(workspace, "data", "raw", "pagamentos")
-
-caminhos = [os.path.join(pasta, nome) for nome in os.listdir(pasta)]
-arquivos = [arq for arq in caminhos if os.path.isfile(arq)]
-csv_files = [arq for arq in arquivos if arq.lower().endswith(".csv")]
-count = len(csv_files)
-
-print("CSV files found:", count)
-
-for path in csv_files:
-    nome_arquivo = os.path.basename(path)
-    path_container = f"/data/raw/pagamentos/{nome_arquivo}"
-
-    query = f"""
-    COPY raw.pagamentos
-    FROM '{path_container}'
-    DELIMITER ','
-    CSV HEADER;
-    """
-    cursor.execute(query)
-
-conn.commit()
-print("All files copied.")
-
-
-# In[11]:
-
-
-workspace = os.path.abspath(os.path.join(os.getcwd(), "..", "..", ".."))
-pasta = os.path.join(workspace, "data", "raw", "recebimentos")
-
-caminhos = [os.path.join(pasta, nome) for nome in os.listdir(pasta)]
-arquivos = [arq for arq in caminhos if os.path.isfile(arq)]
-csv_files = [arq for arq in arquivos if arq.lower().endswith(".csv")]
-count = len(csv_files)
-
-print("CSV files found:", count)
-
-for path in csv_files:
-    nome_arquivo = os.path.basename(path)
-    path_container = f"/data/raw/recebimentos/{nome_arquivo}"
-
-    query = f"""
-    COPY raw.recebimentos
-    FROM '{path_container}'
-    DELIMITER ','
-    CSV HEADER;
-    """
-    cursor.execute(query)
-
-conn.commit()
-print("All files copied.")
-
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Carga da camada RAW (CSVs -> RDS PostgreSQL)")
+    parser.add_argument(
+        "--no-truncate",
+        action="store_true",
+        help="Nao truncar as tabelas antes de carregar (padrao: trunca para recarga idempotente)",
+    )
+    args = parser.parse_args()
+    main(truncate=not args.no_truncate)
