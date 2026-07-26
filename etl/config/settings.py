@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
+from urllib.parse import quote_plus
 
 from dotenv import load_dotenv
 
@@ -46,8 +47,10 @@ class Settings:
     @property
     def database_url(self) -> str:
         """URL SQLAlchemy (driver psycopg2) para o RDS PostgreSQL."""
+        # quote_plus escapa caracteres especiais (@ : / # % ...) na senha/usuario
+        # para nao quebrar a URL de conexao.
         return (
-            f"postgresql+psycopg2://{self.db_user}:{self.db_password}"
+            f"postgresql+psycopg2://{quote_plus(self.db_user)}:{quote_plus(self.db_password)}"
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
         )
 
