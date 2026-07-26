@@ -36,8 +36,8 @@ Ultima atualizacao: 28/06/2026
 - [ ] **ETL config centralizado:** criar `etl/config/` (conexao, batch_id, logger) - hoje a pasta existe mas esta vazia (`.gitkeep`).
 - [ ] **Carga RAW (load_raw):** refatorar `load_raw_csv_to_postgres.py` como script ETL robusto - usar o config centralizado, logging, batch_id, idempotencia, tratamento de erros.
 - [ ] **RAW -> TRUSTED (raw_to_trusted):** implementar scripts por entidade:
-  - [ ] 01_areas.py (vazio hoje)
-  - [ ] 02_categorias_contabeis.py (vazio hoje)
+  - [ ] 01_areas.py
+  - [ ] 02_categorias_contabeis.py
   - [ ] 03_fornecedores_clientes.py
   - [ ] 04_funcionarios.py
   - [ ] 05_transacoes_financeiras.py

@@ -1,4 +1,5 @@
-# Credit Analysis Data Pipeline & Predictive Model
+# SCAP — Sistema de Crédito e Anomalias Preditivas
+### Credit Analysis Data Pipeline & Predictive Model
 
 **Projeto de TCC / Iniciação Científica** | Engenharia da Computação  
 *Data de Início: 06/2025* | *Status: Em Desenvolvimento*
