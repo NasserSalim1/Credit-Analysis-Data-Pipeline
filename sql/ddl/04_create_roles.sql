@@ -4,13 +4,13 @@
 -- A permissao mora no grupo; a pessoa/servico apenas herda o grupo. Assim,
 -- adicionar alguem no time e so um GRANT <grupo> TO <novo_usuario>.
 --
--- Time:
---   nasser       -> eng_dados        (Engenheiro de Dados)
---   adam         -> cientista_dados  (Cientista de Dados)
+-- Time (usuarios pessoais JA EXISTEM no banco -> sao reaproveitados):
+--   nbeserra     -> eng_dados        (Nasser, Engenheiro de Dados)
+--   acolumbari   -> cientista_dados  (Adam, Cientista de Dados)
 --   svc_etl      -> app_etl          (conta de servico do pipeline Python)
 --   svc_powerbi  -> leitura_bi       (conexao do Power BI, somente leitura)
 --
--- COMO RODAR: como usuario MASTER (admin), CONECTADO ao banco do projeto.
+-- COMO RODAR: como usuario MASTER (scap_admin), CONECTADO ao banco do projeto.
 -- Roles sao globais ao cluster; GRANTs de schema/tabela sao por banco.
 -- ANTES DE RODAR: troque os placeholders 'TROQUE_SENHA_*'. Nao versione
 -- senhas reais (mantenha os placeholders no arquivo do git).
@@ -26,18 +26,13 @@ BEGIN
 END
 $$;
 
--- Permite ao master definir "default privileges" em nome dos grupos (secao 5).
+-- Permite ao master definir "default privileges" em nome dos grupos (secao 6).
 GRANT eng_dados, app_etl TO CURRENT_USER;
 
--- ========== 2. LOGINS (pessoas e servicos, herdam do grupo) ==========
+-- ========== 2. LOGINS DE SERVICO (nao-humanos) ==========
+-- Apenas os servicos sao criados aqui; os usuarios pessoais ja existem (secao 3).
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'nasser') THEN
-        CREATE ROLE nasser LOGIN PASSWORD 'TROQUE_SENHA_NASSER' IN ROLE eng_dados;
-    END IF;
-    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'adam') THEN
-        CREATE ROLE adam LOGIN PASSWORD 'TROQUE_SENHA_ADAM' IN ROLE cientista_dados;
-    END IF;
     IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'svc_etl') THEN
         CREATE ROLE svc_etl LOGIN PASSWORD 'TROQUE_SENHA_SVC_ETL' IN ROLE app_etl;
     END IF;
@@ -47,35 +42,45 @@ BEGIN
 END
 $$;
 
--- ========== 3. SCHEMA de trabalho do cientista de dados ==========
+-- ========== 3. ATRIBUIR GRUPOS AOS USUARIOS PESSOAIS EXISTENTES ==========
+-- nbeserra (Nasser) e acolumbari (Adam) ja existem: so herdam o grupo certo.
+GRANT eng_dados       TO nbeserra;
+GRANT cientista_dados TO acolumbari;
+
+-- (Opcional) Se esqueceram a senha, o master pode redefinir aqui. Descomente
+-- e troque o valor -- NUNCA versione com senha real:
+-- ALTER ROLE nbeserra   WITH PASSWORD 'TROQUE_SENHA_NBESERRA';
+-- ALTER ROLE acolumbari WITH PASSWORD 'TROQUE_SENHA_ACOLUMBARI';
+
+-- ========== 4. SCHEMA de trabalho do cientista de dados ==========
 -- Area onde o Adam grava feature tables e resultados de experimentos, sem
 -- tocar nos schemas do pipeline. Owner = grupo cientista_dados (membros herdam).
 CREATE SCHEMA IF NOT EXISTS ml AUTHORIZATION cientista_dados;
 
--- ========== 4. PRIVILEGIOS SOBRE OBJETOS EXISTENTES ==========
+-- ========== 5. PRIVILEGIOS SOBRE OBJETOS EXISTENTES ==========
 
--- 4.1 Engenharia de dados (nasser): uso + criacao de novos objetos (DDL) nos
---     4 schemas, e DML total nos objetos ja existentes do Medallion.
+-- 5.1 Engenharia de dados: uso + criacao de novos objetos (DDL) nos 4 schemas,
+--     e DML total nos objetos ja existentes do Medallion.
 GRANT USAGE, CREATE ON SCHEMA raw, trusted, refined, ml TO eng_dados;
 GRANT ALL PRIVILEGES ON ALL TABLES    IN SCHEMA raw, trusted, refined TO eng_dados;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA raw, trusted, refined TO eng_dados;
 
--- 4.2 App do pipeline (svc_etl): read/write + TRUNCATE (usado no loader RAW).
+-- 5.2 App do pipeline (svc_etl): read/write + TRUNCATE (usado no loader RAW).
 GRANT USAGE ON SCHEMA raw, trusted, refined TO app_etl;
 GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA raw, trusted, refined TO app_etl;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA raw, trusted, refined TO app_etl;
 
--- 4.3 Cientista de dados (adam): leitura no Medallion; escrita total no schema ml
---     (ja garantida por ser owner do schema ml, secao 3).
+-- 5.3 Cientista de dados: leitura no Medallion; escrita total no schema ml
+--     (ja garantida por ser owner do schema ml, secao 4).
 GRANT USAGE  ON SCHEMA raw, trusted, refined TO cientista_dados;
 GRANT SELECT ON ALL TABLES IN SCHEMA raw, trusted, refined TO cientista_dados;
 GRANT USAGE  ON SCHEMA ml TO eng_dados;  -- engenheiro tambem enxerga o schema ml
 
--- 4.4 Leitura BI (svc_powerbi): somente SELECT no Medallion (camada gold e afins).
+-- 5.4 Leitura BI (svc_powerbi): somente SELECT no Medallion (camada gold e afins).
 GRANT USAGE  ON SCHEMA raw, trusted, refined TO leitura_bi;
 GRANT SELECT ON ALL TABLES IN SCHEMA raw, trusted, refined TO leitura_bi;
 
--- ========== 5. DEFAULT PRIVILEGES (objetos criados no FUTURO) ==========
+-- ========== 6. DEFAULT PRIVILEGES (objetos criados no FUTURO) ==========
 -- Sem isto, tabelas novas nao herdam as permissoes acima e cada consumidor
 -- ficaria sem acesso ate um GRANT manual.
 
